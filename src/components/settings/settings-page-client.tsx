@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Monitor, LogOut } from "lucide-react";
+import { Moon, Sun, Monitor, LogOut, Share, Smartphone } from "lucide-react";
+import { isStandalonePwa } from "@/lib/pwa";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +19,11 @@ import type { Profile } from "@/lib/types";
 export function SettingsPageClient({ profile }: { profile: Profile | null }) {
   const { theme, setTheme } = useTheme();
   const { run, isPending } = useRefreshAction();
+  const [installed, setInstalled] = useState(false);
+
+  useEffect(() => {
+    setInstalled(isStandalonePwa());
+  }, []);
 
   async function handleProfileSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,6 +40,27 @@ export function SettingsPageClient({ profile }: { profile: Profile | null }) {
       <PageHeader title="Settings" description="Profile and appearance preferences." />
 
       <div className="grid gap-6 max-w-2xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Smartphone className="h-4 w-4" />
+              Install on iPhone
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground space-y-2">
+            {installed ? (
+              <p className="text-emerald-400 font-medium">
+                You&apos;re using Saif OS as an installed app.
+              </p>
+            ) : (
+              <>
+                <p>In Safari, tap the Share button <Share className="inline h-4 w-4" /> then choose <strong className="text-foreground">Add to Home Screen</strong>.</p>
+                <p>Opens fullscreen without the browser bar, like a native app.</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader><CardTitle className="text-base">Profile</CardTitle></CardHeader>
           <CardContent>

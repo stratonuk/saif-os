@@ -11,7 +11,7 @@ interface TopBarProps {
 
 export function TopBar({ userName }: TopBarProps) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border/50 glass px-4 lg:px-8">
+    <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-4 border-b border-border/50 glass px-4 lg:px-8 safe-area-pt safe-area-px pt-[max(1rem,env(safe-area-inset-top))]">
       <div>
         <p className="text-sm text-muted-foreground">{getGreeting()}</p>
         <h2 className="text-xl font-semibold tracking-tight">

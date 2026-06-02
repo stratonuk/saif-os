@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { TopBar } from "@/components/layout/top-bar";
 import { DemoBanner } from "@/components/layout/demo-banner";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { getProfile } from "@/lib/data";
 
 export default async function AppLayout({
@@ -23,6 +24,7 @@ export default async function AppLayout({
         <main className="flex-1 p-4 lg:p-8 pb-24 lg:pb-8">{children}</main>
       </div>
       <MobileNav />
+      <InstallPrompt />
     </div>
   );
 }
