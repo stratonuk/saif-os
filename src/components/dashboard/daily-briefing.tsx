@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { REMINDER_TYPE_LABELS } from "@/lib/constants";
 import { getReminderUrgencyColor } from "@/lib/reminder-utils";
-import { formatPrivateCurrency, formatDate, daysUntil, cn } from "@/lib/utils";
+import { formatPrivateCurrency, formatDate, formatUKLongDate, daysUntil, cn } from "@/lib/utils";
 import type { DailyBriefing } from "@/lib/briefing-utils";
 
 interface DailyBriefingProps {
@@ -18,11 +18,7 @@ interface DailyBriefingProps {
 }
 
 export function DailyBriefingSection({ briefing, showAmounts = false, onQuickCapture }: DailyBriefingProps) {
-  const today = new Date().toLocaleDateString("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  const today = formatUKLongDate();
 
   return (
     <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-violet-500/5">

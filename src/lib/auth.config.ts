@@ -2,6 +2,9 @@ import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
   trustHost: true,
+  secret:
+    process.env.AUTH_SECRET ??
+    (process.env.NODE_ENV === "production" ? undefined : "dev-only-auth-secret"),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",

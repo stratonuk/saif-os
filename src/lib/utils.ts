@@ -78,3 +78,18 @@ export function getGreeting(date = new Date()) {
   if (hour < 17) return "Good afternoon";
   return "Good evening";
 }
+
+/** Stable UK long date (avoids SSR/client locale comma differences). */
+export function formatUKLongDate(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).formatToParts(date);
+
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+
+  return `${get("weekday")} ${get("day")} ${get("month")}`;
+}

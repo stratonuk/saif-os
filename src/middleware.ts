@@ -41,10 +41,25 @@ export default auth((req) => {
   }
 
   const isLoggedIn = Boolean(req.auth?.user?.id);
+  const isSetupPin = pathname.startsWith("/login/setup-pin");
+  const isVerify = pathname.startsWith("/login/verify");
   const isAuthPage = AUTH_PAGES.some((p) => pathname.startsWith(p));
   const isProtected =
     pathname === "/" ||
     PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+
+  if (isSetupPin) {
+    if (!isLoggedIn) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
+  if (isVerify) {
+    return NextResponse.next();
+  }
 
   if (!isLoggedIn && isProtected) {
     const url = req.nextUrl.clone();

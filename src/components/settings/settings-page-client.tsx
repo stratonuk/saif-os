@@ -95,6 +95,45 @@ export function SettingsPageClient({ profile }: { profile: Profile | null }) {
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Session PIN</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              className="space-y-4"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const form = e.currentTarget;
+                const { changePin } = await import("@/actions/auth");
+                const result = await run(() => changePin(new FormData(form)));
+                if (result?.error) {
+                  toast.error(typeof result.error === "string" ? result.error : "Could not update PIN");
+                  return;
+                }
+                toast.success("PIN updated");
+                form.reset();
+              }}
+            >
+              <div>
+                <Label htmlFor="current">Current PIN</Label>
+                <Input id="current" name="current" type="password" inputMode="numeric" className="mt-1" autoComplete="off" />
+              </div>
+              <div>
+                <Label htmlFor="pin">New PIN (4–6 digits)</Label>
+                <Input id="pin" name="pin" type="password" inputMode="numeric" pattern="[0-9]{4,6}" minLength={4} maxLength={6} required className="mt-1" autoComplete="off" />
+              </div>
+              <div>
+                <Label htmlFor="confirm">Confirm new PIN</Label>
+                <Input id="confirm" name="confirm" type="password" inputMode="numeric" pattern="[0-9]{4,6}" minLength={4} maxLength={6} required className="mt-1" autoComplete="off" />
+              </div>
+              <Button type="submit" variant="outline" className="rounded-xl" disabled={isPending}>
+                Update PIN
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
         <form action={logout}>
           <Button variant="outline" className="rounded-xl text-destructive" type="submit">
             <LogOut className="h-4 w-4 mr-2" /> Sign out

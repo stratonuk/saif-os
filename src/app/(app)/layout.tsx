@@ -7,7 +7,9 @@ import { TopBar } from "@/components/layout/top-bar";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { CommandPaletteProvider } from "@/components/command-palette/command-palette-provider";
 import { CommandPalette } from "@/components/command-palette/command-palette";
+import { SessionPinLock } from "@/components/auth/session-pin-lock";
 import { getProfile } from "@/lib/data";
+import { isDemoMode } from "@/lib/form-helpers";
 
 export default async function AppLayout({
   children,
@@ -16,6 +18,7 @@ export default async function AppLayout({
 }) {
   const profile = await getProfile();
   const userName = profile?.full_name?.split(" ")[0] ?? "Saif";
+  const pinLockEnabled = !isDemoMode();
 
   return (
     <CommandPaletteProvider>
@@ -29,6 +32,7 @@ export default async function AppLayout({
         <FloatingQuickCaptureButton />
         <CommandPalette />
         <InstallPrompt />
+        <SessionPinLock enabled={pinLockEnabled} />
       </div>
     </CommandPaletteProvider>
   );
