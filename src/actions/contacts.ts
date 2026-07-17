@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { insertRow, updateRow, deleteRow } from "@/lib/db";
 import { contactSchema } from "@/lib/validations";
 import {
   isDemoMode,
@@ -63,12 +63,11 @@ export async function createContact(formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("contacts").insert({
-    ...payload,
-    user_id: userId,
-  });
-  if (error) return { error: { _form: [error.message] } };
+  try {
+    await insertRow("contacts", { ...payload, user_id: userId });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to save"] } };
+  }
 
   await revalidateApp("/contacts");
   return { success: true };
@@ -104,9 +103,14 @@ export async function updateContact(id: string, formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("contacts").update(payload).eq("id", id);
-  if (error) return { error: { _form: [error.message] } };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: { _form: ["Not authenticated"] } };
+
+  try {
+    await updateRow("contacts", id, userId, payload);
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to update"] } };
+  }
 
   await revalidateApp("/contacts");
   return { success: true };
@@ -121,9 +125,14 @@ export async function deleteContact(id: string) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("contacts").delete().eq("id", id);
-  if (error) return { error: error.message };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  try {
+    await deleteRow("contacts", id, userId);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to delete" };
+  }
 
   await revalidateApp("/contacts");
   return { success: true };
@@ -143,12 +152,14 @@ export async function markContacted(id: string) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("contacts")
-    .update({ last_contacted: today })
-    .eq("id", id);
-  if (error) return { error: error.message };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  try {
+    await updateRow("contacts", id, userId, { last_contacted: today });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to update" };
+  }
 
   await revalidateApp("/contacts");
   return { success: true };

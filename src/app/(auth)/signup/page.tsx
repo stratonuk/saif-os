@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SignupForm } from "@/components/auth/signup-form";
+import { AppLogo } from "@/components/brand/app-logo";
 import { APP_NAME } from "@/lib/constants";
 
 export default function SignupPage() {
@@ -7,9 +8,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 text-2xl font-bold text-white mb-4">
-            S
-          </div>
+          <AppLogo size={56} className="rounded-2xl mb-4 mx-auto" />
           <h1 className="text-2xl font-semibold">Join {APP_NAME}</h1>
           <p className="text-muted-foreground mt-1">Create your personal dashboard</p>
         </div>

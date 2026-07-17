@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { insertRow, updateRow, deleteRow } from "@/lib/db";
 import { projectSchema } from "@/lib/validations";
 import {
   isDemoMode,
@@ -48,12 +48,16 @@ export async function createProject(formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("projects").insert({
-    ...parsed.data,
-    user_id: userId,
-  });
-  if (error) return { error: { _form: [error.message] } };
+  try {
+    await insertRow("projects", {
+      ...parsed.data,
+      description: parsed.data.description ?? null,
+      notes: parsed.data.notes ?? null,
+      user_id: userId,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to save"] } };
+  }
 
   await revalidateApp("/projects", "/dashboard", "/tasks", "/contacts");
   return { success: true };
@@ -79,9 +83,18 @@ export async function updateProject(id: string, formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("projects").update(parsed.data).eq("id", id);
-  if (error) return { error: { _form: [error.message] } };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: { _form: ["Not authenticated"] } };
+
+  try {
+    await updateRow("projects", id, userId, {
+      ...parsed.data,
+      description: parsed.data.description ?? null,
+      notes: parsed.data.notes ?? null,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to update"] } };
+  }
 
   await revalidateApp("/projects", "/dashboard", "/tasks", "/contacts");
   return { success: true };
@@ -102,9 +115,14 @@ export async function deleteProject(id: string) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("projects").delete().eq("id", id);
-  if (error) return { error: error.message };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  try {
+    await deleteRow("projects", id, userId);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to delete" };
+  }
 
   await revalidateApp("/projects", "/dashboard", "/tasks", "/contacts");
   return { success: true };

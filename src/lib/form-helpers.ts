@@ -9,13 +9,19 @@ export function parseRecurring(formData: FormData): boolean {
   );
 }
 
-/** True when running without Supabase (local file store or Vercel in-memory demo). */
+/** True when using local/in-memory sample data (no Neon DATABASE_URL). */
 export function isDemoMode() {
   if (process.env.NEXT_PUBLIC_DEMO_MODE === "true") return true;
-  return (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  // Neon / production when a database is configured
+  if (process.env.DATABASE_URL) return false;
+  // Legacy: if only Supabase is configured, treat as non-demo for backwards compat
+  if (
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    return false;
+  }
+  return true;
 }
 
 export function newId() {

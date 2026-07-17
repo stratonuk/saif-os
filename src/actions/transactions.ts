@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { insertRow, updateRow, deleteRow } from "@/lib/db";
 import { transactionSchema } from "@/lib/validations";
 import {
   isDemoMode,
@@ -46,12 +46,15 @@ export async function createTransaction(formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("transactions").insert({
-    ...parsed.data,
-    user_id: userId,
-  });
-  if (error) return { error: { _form: [error.message] } };
+  try {
+    await insertRow("transactions", {
+      ...parsed.data,
+      notes: parsed.data.notes ?? null,
+      user_id: userId,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to save"] } };
+  }
 
   await revalidateApp("/money", "/dashboard");
   return { success: true };
@@ -75,9 +78,17 @@ export async function updateTransaction(id: string, formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("transactions").update(parsed.data).eq("id", id);
-  if (error) return { error: { _form: [error.message] } };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: { _form: ["Not authenticated"] } };
+
+  try {
+    await updateRow("transactions", id, userId, {
+      ...parsed.data,
+      notes: parsed.data.notes ?? null,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to update"] } };
+  }
 
   await revalidateApp("/money", "/dashboard");
   return { success: true };
@@ -92,9 +103,14 @@ export async function deleteTransaction(id: string) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("transactions").delete().eq("id", id);
-  if (error) return { error: error.message };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  try {
+    await deleteRow("transactions", id, userId);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to delete" };
+  }
 
   await revalidateApp("/money", "/dashboard");
   return { success: true };

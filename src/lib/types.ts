@@ -14,7 +14,14 @@ export type ReminderType =
   | "insurance"
   | "subscription"
   | "bill"
-  | "custom";
+  | "custom"
+  | "warranty"
+  | "company_accounts"
+  | "personal";
+
+export type WaitingItemStatus = "waiting" | "chased" | "resolved";
+
+export type NoteEntityType = "project" | "contact" | "idea" | "goal" | "none";
 
 export type TransactionType = "income" | "expense";
 export type PaymentMethod = "bank" | "cash";
@@ -140,3 +147,63 @@ export interface Contact {
   created_at: string;
   updated_at: string;
 }
+
+export interface WaitingItem {
+  id: string;
+  user_id: string;
+  title: string;
+  person?: string | null;
+  project_id?: string | null;
+  date_requested?: string | null;
+  follow_up_date?: string | null;
+  status: WaitingItemStatus;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Note {
+  id: string;
+  user_id: string;
+  title: string;
+  content?: string | null;
+  tags: string[];
+  linked_entity_type?: NoteEntityType | null;
+  linked_entity_id?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SearchResult {
+  id: string;
+  type: string;
+  title: string;
+  subtitle?: string;
+  href: string;
+}
+
+export type {
+  Subscription,
+  SubscriptionBillingCycle,
+  SubscriptionCategory,
+  SubscriptionStatus,
+  Document,
+  DocumentEntityType,
+  Vehicle,
+  VehicleEvent,
+  VehicleEventType,
+  VehicleExpense,
+  MonthlyReview,
+  StratonClient,
+  StratonProject,
+  StratonInvoice,
+  StratonHosting,
+  StratonClientReminder,
+  StratonActivity,
+  StratonClientStatus,
+  StratonProjectStatus,
+  StratonInvoiceStatus,
+  StratonHostingStatus,
+  StratonReminderType,
+  InboxItem,
+} from "./module-types";

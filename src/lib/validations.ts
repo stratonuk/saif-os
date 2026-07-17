@@ -3,12 +3,14 @@ import {
   GOAL_TYPES,
   IDEA_CATEGORIES,
   IDEA_STATUSES,
+  NOTE_ENTITY_TYPES,
   PAYMENT_METHODS,
   PROJECT_STATUSES,
   REMINDER_TYPES,
   TASK_CATEGORIES,
   TASK_PRIORITIES,
   TASK_STATUSES,
+  WAITING_STATUSES,
 } from "./constants";
 
 export const loginSchema = z.object({
@@ -90,6 +92,43 @@ export const contactSchema = z.object({
   project_id: z.string().optional().nullable(),
 });
 
+export const waitingItemSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  person: z.string().optional(),
+  project_id: z.string().optional().nullable(),
+  date_requested: z.string().optional(),
+  follow_up_date: z.string().optional(),
+  status: z.enum(WAITING_STATUSES),
+  notes: z.string().optional(),
+});
+
+export const noteSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  content: z.string().optional(),
+  tags: z.string().optional(),
+  linked_entity_type: z.enum(NOTE_ENTITY_TYPES).optional().nullable(),
+  linked_entity_id: z.string().optional().nullable(),
+});
+
+export const quickTaskSchema = taskSchema.pick({ title: true, priority: true, due_date: true, category: true }).extend({
+  status: z.enum(TASK_STATUSES).default("todo"),
+});
+
+export const quickReminderSchema = reminderSchema.pick({ title: true, type: true, due_date: true });
+
+export const quickTransactionSchema = transactionSchema.pick({ title: true, amount: true, type: true, category: true, date: true }).extend({
+  payment_method: z.enum(PAYMENT_METHODS).default("bank"),
+});
+
+export const quickIdeaSchema = ideaSchema.pick({ title: true, category: true }).extend({
+  priority_score: z.coerce.number().min(1).max(10).default(5),
+  status: z.enum(IDEA_STATUSES).default("raw"),
+});
+
+export const quickContactSchema = contactSchema.pick({ name: true, company: true, email: true });
+
+export const quickNoteSchema = noteSchema.pick({ title: true, content: true, tags: true });
+
 export const profileSchema = z.object({
   full_name: z.string().min(2, "Name is required"),
   email: z.string().email(),
@@ -102,3 +141,5 @@ export type ProjectFormValues = z.infer<typeof projectSchema>;
 export type IdeaFormValues = z.infer<typeof ideaSchema>;
 export type GoalFormValues = z.infer<typeof goalSchema>;
 export type ContactFormValues = z.infer<typeof contactSchema>;
+export type WaitingItemFormValues = z.infer<typeof waitingItemSchema>;
+export type NoteFormValues = z.infer<typeof noteSchema>;

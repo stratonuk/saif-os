@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getSql } from "@/lib/db";
 import { profileSchema } from "@/lib/validations";
 import {
   isDemoMode,
@@ -34,16 +34,16 @@ export async function updateProfile(formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      full_name: parsed.data.full_name,
-      email: parsed.data.email,
-    })
-    .eq("id", userId);
-
-  if (error) return { error: { _form: [error.message] } };
+  try {
+    const db = getSql();
+    await db`
+      UPDATE profiles
+      SET full_name = ${parsed.data.full_name}, email = ${parsed.data.email}
+      WHERE id = ${userId}
+    `;
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to update"] } };
+  }
 
   await revalidateApp("/settings", "/dashboard");
   return { success: true };

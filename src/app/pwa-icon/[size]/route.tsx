@@ -1,34 +1,9 @@
-import { ImageResponse } from "next/og";
+import { readFile } from "fs/promises";
+import path from "path";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
-function AppIcon({ size }: { size: number }) {
-  const radius = Math.round(size * 0.22);
-  const fontSize = Math.round(size * 0.45);
-
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "linear-gradient(135deg, #0a84ff 0%, #5e5ce6 100%)",
-          borderRadius: radius,
-          color: "white",
-          fontSize,
-          fontWeight: 700,
-          fontFamily: "system-ui, sans-serif",
-        }}
-      >
-        S
-      </div>
-    ),
-    { width: size, height: size }
-  );
-}
+const ALLOWED = new Set([192, 512]);
 
 export async function GET(
   _request: Request,
@@ -37,9 +12,17 @@ export async function GET(
   const { size: sizeParam } = await context.params;
   const size = Number.parseInt(sizeParam, 10);
 
-  if (![192, 512].includes(size)) {
+  if (!ALLOWED.has(size)) {
     return new Response("Invalid size", { status: 404 });
   }
 
-  return AppIcon({ size });
+  const filePath = path.join(process.cwd(), "public", "brand", `icon-${size}.png`);
+  const buffer = await readFile(filePath);
+
+  return new Response(buffer, {
+    headers: {
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  });
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { insertRow, updateRow, deleteRow } from "@/lib/db";
 import { ideaSchema } from "@/lib/validations";
 import {
   isDemoMode,
@@ -45,12 +45,15 @@ export async function createIdea(formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("ideas").insert({
-    ...parsed.data,
-    user_id: userId,
-  });
-  if (error) return { error: { _form: [error.message] } };
+  try {
+    await insertRow("ideas", {
+      ...parsed.data,
+      description: parsed.data.description ?? null,
+      user_id: userId,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to save"] } };
+  }
 
   await revalidateApp("/ideas");
   return { success: true };
@@ -75,9 +78,17 @@ export async function updateIdea(id: string, formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("ideas").update(parsed.data).eq("id", id);
-  if (error) return { error: { _form: [error.message] } };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: { _form: ["Not authenticated"] } };
+
+  try {
+    await updateRow("ideas", id, userId, {
+      ...parsed.data,
+      description: parsed.data.description ?? null,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to update"] } };
+  }
 
   await revalidateApp("/ideas");
   return { success: true };
@@ -92,9 +103,14 @@ export async function deleteIdea(id: string) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("ideas").delete().eq("id", id);
-  if (error) return { error: error.message };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  try {
+    await deleteRow("ideas", id, userId);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to delete" };
+  }
 
   await revalidateApp("/ideas");
   return { success: true };

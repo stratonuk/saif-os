@@ -11,9 +11,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} — Personal Life Dashboard`,
+  title: `${APP_NAME} — Personal Assistant`,
   description:
-    "Premium personal dashboard for tasks, money, projects, reminders and goals.",
+    "JARVIS — your premium personal assistant for tasks, money, projects, reminders and goals.",
   applicationName: APP_NAME,
   manifest: "/manifest.webmanifest",
   appleWebApp: {

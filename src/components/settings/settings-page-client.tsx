@@ -50,7 +50,7 @@ export function SettingsPageClient({ profile }: { profile: Profile | null }) {
           <CardContent className="text-sm text-muted-foreground space-y-2">
             {installed ? (
               <p className="text-emerald-400 font-medium">
-                You&apos;re using Saif OS as an installed app.
+                You&apos;re using JARVIS as an installed app.
               </p>
             ) : (
               <>

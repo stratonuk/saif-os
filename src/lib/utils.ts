@@ -14,6 +14,12 @@ export function formatCurrency(amount: number, currency = "GBP") {
   }).format(amount);
 }
 
+/** Mask currency when privacy mode is on (dashboard hide-by-default). */
+export function formatPrivateCurrency(amount: number, show: boolean, currency = "GBP") {
+  if (!show) return "£••••";
+  return formatCurrency(amount, currency);
+}
+
 export function formatDate(date: string | Date) {
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
@@ -58,8 +64,16 @@ export function shouldAutoCapitalizeFirst(
   return true;
 }
 
-export function getGreeting() {
-  const hour = new Date().getHours();
+export function getGreeting(date = new Date()) {
+  const hourPart = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    hour: "numeric",
+    hourCycle: "h23",
+  })
+    .formatToParts(date)
+    .find((part) => part.type === "hour")?.value;
+  const hour = Number(hourPart ?? 0);
+
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
   return "Good evening";

@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { Share, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AppLogo } from "@/components/brand/app-logo";
 import { canInstallPwa, isStandalonePwa } from "@/lib/pwa";
 
-const DISMISS_KEY = "saif-os-install-dismissed";
+const DISMISS_KEY = "jarvis-install-dismissed";
 
 export function InstallPrompt() {
   const [show, setShow] = useState(false);
@@ -29,11 +30,9 @@ export function InstallPrompt() {
     <div className="fixed bottom-20 left-4 right-4 z-[60] lg:hidden">
       <div className="glass-strong rounded-2xl p-4 shadow-2xl border border-primary/20">
         <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 text-white font-bold">
-            S
-          </div>
+          <AppLogo size={40} className="rounded-xl shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm">Add Saif OS to Home Screen</p>
+            <p className="font-semibold text-sm">Add JARVIS to Home Screen</p>
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
               Tap <Share className="inline h-3.5 w-3.5 mx-0.5" /> Share, then{" "}
               <strong>Add to Home Screen</strong> to use it like an app.

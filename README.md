@@ -1,4 +1,4 @@
-# Saif OS
+# JARVIS
 
 Premium personal life dashboard — tasks, money, projects, reminders, goals, ideas and contacts in one place.
 
@@ -6,13 +6,13 @@ Premium personal life dashboard — tasks, money, projects, reminders, goals, id
 
 - **Next.js 15** (App Router) + TypeScript
 - **Tailwind CSS 4** + shadcn-style UI
-- **Supabase** (auth + PostgreSQL)
+- **Neon Postgres** + **Auth.js** (email/password)
 - **Lucide** icons · **Recharts** charts
 - **Zod** validation · Server Actions
 
 ## Quick start (demo mode)
 
-No Supabase required — the app runs with realistic sample data for **Saif**.
+No database required — the app runs with realistic sample data.
 
 ```bash
 npm install
@@ -21,16 +21,18 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) — you’ll land on the dashboard.
 
-**All CRUD works in demo mode** — changes persist to `data/saif-store.json` locally. Add tasks, log expenses, update goals, mark contacts as reached, etc.
+## Go live (Vercel + Neon + Auth)
 
-Use **Sign out** in Settings to reach `/login` (any email/password works in demo mode).
+See **[DEPLOY-VERCEL-DEMO.md](./DEPLOY-VERCEL-DEMO.md)** for:
+
+1. Vercel project + Neon Marketplace database  
+2. `AUTH_SECRET` + `DATABASE_URL`  
+3. Running `neon/schema.sql`  
+4. Sign up / sign in with a real account  
 
 ## Supabase setup
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Copy `.env.example` → `.env.local` and add your URL + anon key
-3. Run the migration in `supabase/migrations/001_initial_schema.sql` via the SQL editor
-4. Sign up in the app, then run `supabase/seed.sql` replacing `:user_id` with your auth user UUID
+Legacy path — the app now prefers **Neon + Auth.js**. Old Supabase client files remain unused.
 
 ## Pages
 

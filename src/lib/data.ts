@@ -1,18 +1,21 @@
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
 import { readDemoStore } from "@/lib/demo-store";
 import { isDemoMode } from "@/lib/form-helpers";
+import { getAuthUserId } from "@/lib/action-utils";
+import { getSql, selectForUser } from "@/lib/db";
 import { normalizeTransactions } from "@/lib/transaction-utils";
 import type {
   Contact,
   Goal,
   Idea,
+  Note,
   Profile,
   Project,
   Reminder,
   Task,
   Transaction,
+  WaitingItem,
 } from "@/lib/types";
 
 export async function getProfile(): Promise<Profile | null> {
@@ -21,19 +24,14 @@ export async function getProfile(): Promise<Profile | null> {
     return store.profile;
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  const userId = await getAuthUserId();
+  if (!userId) return null;
 
-  const { data } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  return data;
+  const db = getSql();
+  const rows = await db`
+    SELECT * FROM profiles WHERE id = ${userId} LIMIT 1
+  `;
+  return (rows[0] as Profile) ?? null;
 }
 
 export async function getTasks(): Promise<Task[]> {
@@ -41,14 +39,9 @@ export async function getTasks(): Promise<Task[]> {
     const store = await readDemoStore();
     return store.tasks;
   }
-
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("tasks")
-    .select("*")
-    .order("due_date", { ascending: true, nullsFirst: false });
-
-  return data ?? [];
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<Task>("tasks", userId, { col: "due_date", asc: true });
 }
 
 export async function getReminders(): Promise<Reminder[]> {
@@ -56,14 +49,9 @@ export async function getReminders(): Promise<Reminder[]> {
     const store = await readDemoStore();
     return store.reminders;
   }
-
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("reminders")
-    .select("*")
-    .order("due_date", { ascending: true });
-
-  return data ?? [];
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<Reminder>("reminders", userId, { col: "due_date", asc: true });
 }
 
 export async function getTransactions(): Promise<Transaction[]> {
@@ -71,14 +59,13 @@ export async function getTransactions(): Promise<Transaction[]> {
     const store = await readDemoStore();
     return store.transactions;
   }
-
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("transactions")
-    .select("*")
-    .order("date", { ascending: false });
-
-  return normalizeTransactions(data ?? []);
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  const rows = await selectForUser<Transaction>("transactions", userId, {
+    col: "date",
+    asc: false,
+  });
+  return normalizeTransactions(rows);
 }
 
 export async function getProjects(): Promise<Project[]> {
@@ -86,14 +73,9 @@ export async function getProjects(): Promise<Project[]> {
     const store = await readDemoStore();
     return store.projects;
   }
-
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("projects")
-    .select("*")
-    .order("updated_at", { ascending: false });
-
-  return data ?? [];
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<Project>("projects", userId, { col: "updated_at", asc: false });
 }
 
 export async function getIdeas(): Promise<Idea[]> {
@@ -101,14 +83,9 @@ export async function getIdeas(): Promise<Idea[]> {
     const store = await readDemoStore();
     return store.ideas;
   }
-
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("ideas")
-    .select("*")
-    .order("priority_score", { ascending: false });
-
-  return data ?? [];
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<Idea>("ideas", userId, { col: "priority_score", asc: false });
 }
 
 export async function getGoals(): Promise<Goal[]> {
@@ -116,11 +93,9 @@ export async function getGoals(): Promise<Goal[]> {
     const store = await readDemoStore();
     return store.goals;
   }
-
-  const supabase = await createClient();
-  const { data } = await supabase.from("goals").select("*");
-
-  return data ?? [];
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<Goal>("goals", userId);
 }
 
 export async function getContacts(): Promise<Contact[]> {
@@ -128,14 +103,32 @@ export async function getContacts(): Promise<Contact[]> {
     const store = await readDemoStore();
     return store.contacts;
   }
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<Contact>("contacts", userId, { col: "name", asc: true });
+}
 
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("contacts")
-    .select("*")
-    .order("name", { ascending: true });
+export async function getWaitingItems(): Promise<WaitingItem[]> {
+  if (isDemoMode()) {
+    const store = await readDemoStore();
+    return store.waiting_items;
+  }
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<WaitingItem>("waiting_items", userId, {
+    col: "follow_up_date",
+    asc: true,
+  });
+}
 
-  return data ?? [];
+export async function getNotes(): Promise<Note[]> {
+  if (isDemoMode()) {
+    const store = await readDemoStore();
+    return store.notes;
+  }
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<Note>("notes", userId, { col: "updated_at", asc: false });
 }
 
 export function getMonthlyFinance(
@@ -183,14 +176,15 @@ export function getActiveProjects(projects: Project[]) {
   return projects.filter((p) => p.status !== "paused");
 }
 
-export function getUpcomingReminders(reminders: Reminder[], limit = 5) {
+export function getUpcomingReminders(reminders: Reminder[], limit = 5, withinDays = 30) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return reminders
     .filter((r) => {
       const d = new Date(r.due_date);
       d.setHours(0, 0, 0, 0);
-      return d >= today;
+      const diff = Math.ceil((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return diff >= 0 && diff <= withinDays;
     })
     .sort(
       (a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()

@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { insertRow, updateRow, deleteRow } from "@/lib/db";
 import { reminderSchema } from "@/lib/validations";
 import {
   isDemoMode,
@@ -51,12 +51,16 @@ export async function createReminder(formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("reminders").insert({
-    ...parsed.data,
-    user_id: userId,
-  });
-  if (error) return { error: { _form: [error.message] } };
+  try {
+    await insertRow("reminders", {
+      ...parsed.data,
+      recurring_interval: parsed.data.recurring_interval ?? null,
+      notes: parsed.data.notes ?? null,
+      user_id: userId,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to save"] } };
+  }
 
   await revalidateApp("/reminders", "/dashboard");
   return { success: true };
@@ -82,9 +86,18 @@ export async function updateReminder(id: string, formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("reminders").update(parsed.data).eq("id", id);
-  if (error) return { error: { _form: [error.message] } };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: { _form: ["Not authenticated"] } };
+
+  try {
+    await updateRow("reminders", id, userId, {
+      ...parsed.data,
+      recurring_interval: parsed.data.recurring_interval ?? null,
+      notes: parsed.data.notes ?? null,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to update"] } };
+  }
 
   await revalidateApp("/reminders", "/dashboard");
   return { success: true };
@@ -99,9 +112,14 @@ export async function deleteReminder(id: string) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("reminders").delete().eq("id", id);
-  if (error) return { error: error.message };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  try {
+    await deleteRow("reminders", id, userId);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to delete" };
+  }
 
   await revalidateApp("/reminders", "/dashboard");
   return { success: true };

@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { insertRow, updateRow, deleteRow } from "@/lib/db";
 import { goalSchema } from "@/lib/validations";
 import {
   isDemoMode,
@@ -48,12 +48,16 @@ export async function createGoal(formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("goals").insert({
-    ...parsed.data,
-    user_id: userId,
-  });
-  if (error) return { error: { _form: [error.message] } };
+  try {
+    await insertRow("goals", {
+      ...parsed.data,
+      target_date: parsed.data.target_date ?? null,
+      unit: parsed.data.unit ?? null,
+      user_id: userId,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to save"] } };
+  }
 
   await revalidateApp("/goals", "/money", "/dashboard");
   return { success: true };
@@ -79,9 +83,18 @@ export async function updateGoal(id: string, formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("goals").update(parsed.data).eq("id", id);
-  if (error) return { error: { _form: [error.message] } };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: { _form: ["Not authenticated"] } };
+
+  try {
+    await updateRow("goals", id, userId, {
+      ...parsed.data,
+      target_date: parsed.data.target_date ?? null,
+      unit: parsed.data.unit ?? null,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to update"] } };
+  }
 
   await revalidateApp("/goals", "/money", "/dashboard");
   return { success: true };
@@ -96,9 +109,14 @@ export async function deleteGoal(id: string) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("goals").delete().eq("id", id);
-  if (error) return { error: error.message };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  try {
+    await deleteRow("goals", id, userId);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to delete" };
+  }
 
   await revalidateApp("/goals", "/money", "/dashboard");
   return { success: true };
@@ -116,12 +134,14 @@ export async function updateGoalProgress(id: string, currentValue: number) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("goals")
-    .update({ current_value: currentValue })
-    .eq("id", id);
-  if (error) return { error: error.message };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  try {
+    await updateRow("goals", id, userId, { current_value: currentValue });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to update" };
+  }
 
   await revalidateApp("/goals", "/money", "/dashboard");
   return { success: true };

@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { insertRow, updateRow, deleteRow, selectByIdForUser } from "@/lib/db";
 import { taskSchema } from "@/lib/validations";
 import {
   isDemoMode,
@@ -50,12 +50,17 @@ export async function createTask(formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("tasks").insert({
-    ...parsed.data,
-    user_id: userId,
-  });
-  if (error) return { error: { _form: [error.message] } };
+  try {
+    await insertRow("tasks", {
+      ...parsed.data,
+      description: parsed.data.description ?? null,
+      due_date: parsed.data.due_date ?? null,
+      project_id: parsed.data.project_id ?? null,
+      user_id: userId,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to save"] } };
+  }
 
   await revalidateApp("/tasks", "/dashboard", "/projects");
   return { success: true };
@@ -82,9 +87,19 @@ export async function updateTask(id: string, formData: FormData) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("tasks").update(parsed.data).eq("id", id);
-  if (error) return { error: { _form: [error.message] } };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: { _form: ["Not authenticated"] } };
+
+  try {
+    await updateRow("tasks", id, userId, {
+      ...parsed.data,
+      description: parsed.data.description ?? null,
+      due_date: parsed.data.due_date ?? null,
+      project_id: parsed.data.project_id ?? null,
+    });
+  } catch (e) {
+    return { error: { _form: [e instanceof Error ? e.message : "Failed to update"] } };
+  }
 
   await revalidateApp("/tasks", "/dashboard", "/projects");
   return { success: true };
@@ -99,9 +114,14 @@ export async function deleteTask(id: string) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("tasks").delete().eq("id", id);
-  if (error) return { error: error.message };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  try {
+    await deleteRow("tasks", id, userId);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to delete" };
+  }
 
   await revalidateApp("/tasks", "/dashboard", "/projects");
   return { success: true };
@@ -124,12 +144,10 @@ export async function toggleTaskStatus(id: string) {
     return { success: true };
   }
 
-  const supabase = await createClient();
-  const { data: task } = await supabase
-    .from("tasks")
-    .select("status")
-    .eq("id", id)
-    .single();
+  const userId = await getAuthUserId();
+  if (!userId) return { error: "Not authenticated" };
+
+  const task = await selectByIdForUser<{ status: Task["status"] }>("tasks", id, userId);
   if (!task) return { error: "Not found" };
 
   const next =
@@ -139,11 +157,11 @@ export async function toggleTaskStatus(id: string) {
         ? "in_progress"
         : "done";
 
-  const { error } = await supabase
-    .from("tasks")
-    .update({ status: next })
-    .eq("id", id);
-  if (error) return { error: error.message };
+  try {
+    await updateRow("tasks", id, userId, { status: next });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Failed to update" };
+  }
 
   await revalidateApp("/tasks", "/dashboard");
   return { success: true };
