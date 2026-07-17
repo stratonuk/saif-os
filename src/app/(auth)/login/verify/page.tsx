@@ -6,7 +6,12 @@ import { APP_NAME } from "@/lib/constants";
 export default async function VerifyLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ challengeId?: string; email?: string; devCode?: string }>;
+  searchParams: Promise<{
+    challengeId?: string;
+    email?: string;
+    devCode?: string;
+    emailError?: string;
+  }>;
 }) {
   const params = await searchParams;
   const challengeId = params.challengeId ?? "";
@@ -38,6 +43,7 @@ export default async function VerifyLoginPage({
             challengeId={challengeId}
             email={email}
             devCode={params.devCode}
+            emailError={params.emailError}
           />
           <p className="text-center text-sm text-muted-foreground mt-6">
             <Link href="/login" className="text-primary hover:underline">

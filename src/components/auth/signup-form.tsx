@@ -27,6 +27,7 @@ export function SignupForm() {
         email: result.email,
       });
       if (result.devCode) params.set("devCode", result.devCode);
+      if (result.emailError) params.set("emailError", result.emailError);
       router.push(`/login/verify?${params.toString()}`);
       return;
     }

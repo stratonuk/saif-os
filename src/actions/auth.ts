@@ -63,15 +63,14 @@ export async function startLogin(formData: FormData) {
   const challengeId = (inserted[0] as { id: string }).id;
 
   const sent = await sendLoginCodeEmail(email, code);
-  if (!sent.ok) {
-    return { error: "Could not send verification email. Check RESEND_API_KEY." };
-  }
-
+  // Always continue to verify — if email failed, show the code on-screen as fallback
   return {
     success: true,
     challengeId,
     email,
-    devCode: sent.devLogged ? code : undefined,
+    emailSent: sent.ok,
+    emailError: sent.ok ? undefined : sent.error,
+    devCode: sent.ok ? (sent.devLogged ? code : undefined) : sent.code,
   };
 }
 
@@ -199,16 +198,15 @@ export async function signup(formData: FormData) {
   `;
   const challengeId = (challenge[0] as { id: string }).id;
   const sent = await sendLoginCodeEmail(email, code);
-  if (!sent.ok) {
-    return { error: "Account created, but email failed. Try signing in." };
-  }
 
   return {
     success: true,
     challengeId,
     email,
     needsVerification: true,
-    devCode: sent.devLogged ? code : undefined,
+    emailSent: sent.ok,
+    emailError: sent.ok ? undefined : sent.error,
+    devCode: sent.ok ? (sent.devLogged ? code : undefined) : sent.code,
   };
 }
 

@@ -10,10 +10,12 @@ export function VerifyOtpForm({
   challengeId,
   email,
   devCode,
+  emailError,
 }: {
   challengeId: string;
   email: string;
   devCode?: string;
+  emailError?: string;
 }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,10 +42,20 @@ export function VerifyOtpForm({
       <p className="text-sm text-muted-foreground">
         Enter the 6-digit code sent to <span className="text-foreground font-medium">{email}</span>.
       </p>
-      {devCode && (
-        <p className="text-xs rounded-lg bg-amber-500/10 text-amber-200 p-3">
-          Dev mode (no Resend key): use code <strong>{devCode}</strong>
-        </p>
+      {(devCode || emailError) && (
+        <div className="text-xs rounded-lg bg-amber-500/10 text-amber-200 p-3 space-y-1">
+          {emailError && (
+            <p>
+              Email delivery failed{emailError ? `: ${emailError}` : ""}.
+              With Resend&apos;s free test sender you can only email the address on your Resend account, or verify your own domain.
+            </p>
+          )}
+          {devCode && (
+            <p>
+              Use this code for now: <strong className="tracking-widest">{devCode}</strong>
+            </p>
+          )}
+        </div>
       )}
       <div>
         <Label htmlFor="code">Verification code</Label>
