@@ -1,27 +1,34 @@
 import type { Subscription, SubscriptionBillingCycle } from "./types";
 import { daysUntil } from "./utils";
 
+function subscriptionCost(sub: Subscription): number {
+  const n = Number(sub.cost);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export function monthlySubscriptionCost(sub: Subscription): number {
   if (sub.status !== "active") return 0;
+  const cost = subscriptionCost(sub);
   switch (sub.billing_cycle) {
     case "weekly":
-      return sub.cost * 4.33;
+      return cost * 4.33;
     case "yearly":
-      return sub.cost / 12;
+      return cost / 12;
     default:
-      return sub.cost;
+      return cost;
   }
 }
 
 export function annualSubscriptionCost(sub: Subscription): number {
   if (sub.status !== "active") return 0;
+  const cost = subscriptionCost(sub);
   switch (sub.billing_cycle) {
     case "weekly":
-      return sub.cost * 52;
+      return cost * 52;
     case "monthly":
-      return sub.cost * 12;
+      return cost * 12;
     default:
-      return sub.cost;
+      return cost;
   }
 }
 

@@ -6,12 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number, currency = "GBP") {
+  const n = Number(amount);
   return new Intl.NumberFormat("en-GB", {
     style: "currency",
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(Number.isFinite(n) ? n : 0);
 }
 
 /** Mask currency when privacy mode is on (dashboard hide-by-default). */
