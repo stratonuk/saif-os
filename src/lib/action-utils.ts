@@ -1,3 +1,4 @@
+import { cache } from "react";
 import {
   isDemoMode,
   newId,
@@ -9,13 +10,18 @@ import { revalidatePath } from "next/cache";
 
 export { isDemoMode, newId, nowIso, DEMO_USER_ID };
 
-export async function getAuthUserId(): Promise<string | null> {
-  if (isDemoMode()) return DEMO_USER_ID;
-
+/** One auth() decode per RSC request — shared by layout + every data getter. */
+export const getSession = cache(async () => {
+  if (isDemoMode()) return null;
   const { auth } = await import("@/lib/auth");
-  const session = await auth();
+  return auth();
+});
+
+export const getAuthUserId = cache(async (): Promise<string | null> => {
+  if (isDemoMode()) return DEMO_USER_ID;
+  const session = await getSession();
   return session?.user?.id ?? null;
-}
+});
 
 export async function revalidateApp(...paths: string[]) {
   const all = new Set([

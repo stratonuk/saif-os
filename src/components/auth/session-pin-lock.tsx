@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useLayoutEffect, useRef, useState, useTransition } from "react";
 import { Lock } from "lucide-react";
-import { getPinStatus, verifySessionPin } from "@/actions/auth";
+import { verifySessionPin } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,41 +10,68 @@ import { useRouter } from "next/navigation";
 
 const UNLOCK_KEY = "jarvis_session_unlocked";
 
-export function SessionPinLock({ enabled }: { enabled: boolean }) {
+function isSessionUnlocked(): boolean {
+  try {
+    return sessionStorage.getItem(UNLOCK_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function SessionPinLock({
+  enabled,
+  pinSet = true,
+}: {
+  enabled: boolean;
+  /** From JWT — skip the extra DB round-trip on every open. */
+  pinSet?: boolean;
+}) {
   const router = useRouter();
-  const [locked, setLocked] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Assume locked on first paint when a PIN is required — unlock sync in layout effect
+  // so already-unlocked sessions don't flash content before the gate.
+  const [locked, setLocked] = useState(() => enabled && pinSet);
+  const [readOnly, setReadOnly] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!enabled) {
-      setChecking(false);
       setLocked(false);
       return;
     }
+    if (!pinSet) {
+      setLocked(false);
+      router.replace("/login/setup-pin");
+      return;
+    }
+    if (isSessionUnlocked()) {
+      setLocked(false);
+      return;
+    }
+    setLocked(true);
+  }, [enabled, pinSet, router]);
 
-    let cancelled = false;
-    (async () => {
-      const status = await getPinStatus();
-      if (cancelled) return;
-      if (status.demo || !status.pinSet) {
-        setLocked(false);
-        setChecking(false);
-        if (!status.demo && !status.pinSet) {
-          router.replace("/login/setup-pin");
-        }
-        return;
+  // Open the keyboard as soon as the lock is visible (iOS needs focus in layout).
+  useLayoutEffect(() => {
+    if (!locked) return;
+    const el = inputRef.current;
+    if (!el) return;
+
+    // iOS Safari / standalone PWA: start readOnly, then clear + focus so the
+    // keyboard opens without requiring a tap.
+    el.focus({ preventScroll: true });
+    setReadOnly(false);
+    requestAnimationFrame(() => {
+      el.focus({ preventScroll: true });
+      // Some iOS versions need a second tick after removing readOnly.
+      try {
+        el.click();
+      } catch {
+        /* ignore */
       }
-      const unlocked = sessionStorage.getItem(UNLOCK_KEY) === "1";
-      setLocked(!unlocked);
-      setChecking(false);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled, router]);
+    });
+  }, [locked]);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -63,10 +90,13 @@ export function SessionPinLock({ enabled }: { enabled: boolean }) {
     });
   }
 
-  if (!enabled || checking || !locked) return null;
+  if (!enabled || !pinSet || !locked) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-md p-4">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-background p-4"
+      suppressHydrationWarning
+    >
       <div className="w-full max-w-sm glass-strong rounded-2xl p-8 space-y-6">
         <div className="text-center space-y-2">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
@@ -84,8 +114,11 @@ export function SessionPinLock({ enabled }: { enabled: boolean }) {
             </p>
           )}
           <div>
-            <Label htmlFor="session-pin" className="sr-only">PIN</Label>
+            <Label htmlFor="session-pin" className="sr-only">
+              PIN
+            </Label>
             <Input
+              ref={inputRef}
               id="session-pin"
               name="pin"
               type="password"
@@ -95,9 +128,12 @@ export function SessionPinLock({ enabled }: { enabled: boolean }) {
               maxLength={6}
               required
               autoFocus
+              readOnly={readOnly}
+              autoCapitalizeFirst={false}
+              enterKeyHint="done"
+              autoComplete="one-time-code"
               className="tracking-[0.4em] text-center text-xl"
               placeholder="••••"
-              autoComplete="off"
             />
           </div>
           <Button type="submit" className="w-full rounded-xl" disabled={pending}>

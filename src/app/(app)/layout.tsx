@@ -1,24 +1,28 @@
-export const dynamic = "force-dynamic";
-
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { FloatingQuickCaptureButton } from "@/components/layout/floating-quick-capture-button";
 import { TopBar } from "@/components/layout/top-bar";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { CommandPaletteProvider } from "@/components/command-palette/command-palette-provider";
-import { CommandPalette } from "@/components/command-palette/command-palette";
+import { CommandPaletteLazy } from "@/components/command-palette/command-palette-lazy";
 import { SessionPinLock } from "@/components/auth/session-pin-lock";
-import { getProfile } from "@/lib/data";
-import { isDemoMode } from "@/lib/form-helpers";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+import { getSession, isDemoMode } from "@/lib/action-utils";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const profile = await getProfile();
-  const userName = profile?.full_name?.split(" ")[0] ?? "Saif";
-  const pinLockEnabled = !isDemoMode();
+  const demo = isDemoMode();
+  // Prefer JWT session over a Neon profile round-trip so the shell paints faster.
+  const session = await getSession();
+  const userName =
+    session?.user?.name?.split(" ")[0] ??
+    session?.user?.email?.split("@")[0] ??
+    "Saif";
+  const pinLockEnabled = !demo;
+  const pinSet = demo ? false : Boolean(session?.user?.pinSet);
 
   return (
     <CommandPaletteProvider>
@@ -30,9 +34,10 @@ export default async function AppLayout({
         </div>
         <MobileBottomNav />
         <FloatingQuickCaptureButton />
-        <CommandPalette />
+        <CommandPaletteLazy />
         <InstallPrompt />
-        <SessionPinLock enabled={pinLockEnabled} />
+        <ServiceWorkerRegister />
+        <SessionPinLock enabled={pinLockEnabled} pinSet={pinSet} />
       </div>
     </CommandPaletteProvider>
   );

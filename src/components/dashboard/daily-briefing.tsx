@@ -21,7 +21,7 @@ export function DailyBriefingSection({ briefing, showAmounts = false, onQuickCap
   const today = formatUKLongDate();
 
   return (
-    <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-violet-500/5">
+    <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-success/5">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -102,7 +102,7 @@ export function DailyBriefingSection({ briefing, showAmounts = false, onQuickCap
             count={briefing.overdueTasks.length}
             empty="All caught up"
             href="/tasks"
-            variant="danger"
+            variant={briefing.overdueTasks.length > 0 ? "danger" : undefined}
           >
             {briefing.overdueTasks.slice(0, 3).map((task) => (
               <div key={task.id} className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2">
@@ -159,7 +159,7 @@ export function DailyBriefingSection({ briefing, showAmounts = false, onQuickCap
               </p>
               <div className="mt-3 h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-violet-500 transition-all"
+                  className="h-full rounded-full bg-gradient-to-r from-success/70 to-success transition-all"
                   style={{ width: `${briefing.projectNeedingAttention.progress}%` }}
                 />
               </div>

@@ -12,6 +12,7 @@ import type {
   Vehicle,
   VehicleEvent,
   VehicleExpense,
+  ParkingTicket,
 } from "./types";
 
 export const demoSubscriptions: Subscription[] = [
@@ -81,6 +82,21 @@ export const demoVehicleEvents: VehicleEvent[] = [
 export const demoVehicleExpenses: VehicleExpense[] = [
   { id: "vx1", user_id: DEMO_USER_ID, vehicle_id: "v1", title: "Fuel - June", amount: 120, category: "fuel", expense_date: "2026-06-01", notes: null, created_at: "2026-06-01T00:00:00Z" },
   { id: "vx2", user_id: DEMO_USER_ID, vehicle_id: "v1", title: "Car wash", amount: 12, category: "maintenance", expense_date: "2026-06-10", notes: null, created_at: "2026-06-10T00:00:00Z" },
+];
+
+export const demoParkingTickets: ParkingTicket[] = [
+  {
+    id: "pt1", user_id: DEMO_USER_ID, vehicle_id: "v1", pcn_number: "WM12345678",
+    issuer: "Birmingham City Council", amount: 35, issue_date: "2026-07-10",
+    due_date: "2026-07-24", status: "unpaid", paid_date: null,
+    notes: "50% discount if paid within 14 days", created_at: "2026-07-10T00:00:00Z", updated_at: "2026-07-10T00:00:00Z",
+  },
+  {
+    id: "pt2", user_id: DEMO_USER_ID, vehicle_id: "v1", pcn_number: "LB98765432",
+    issuer: "Euro Car Parks", amount: 60, issue_date: "2026-05-02",
+    due_date: "2026-05-30", status: "paid", paid_date: "2026-05-12",
+    notes: null, created_at: "2026-05-02T00:00:00Z", updated_at: "2026-05-12T00:00:00Z",
+  },
 ];
 
 export const demoDocuments: Document[] = [

@@ -107,7 +107,7 @@ export function InboxPageClient({ inboxItems }: { inboxItems: InboxItem[] }) {
           icon={Inbox}
           title="Inbox zero"
           description="You're all caught up. Tasks, reminders, renewals, and follow-ups will appear here when they need attention."
-          className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-violet-500/5"
+          className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-success/5"
           action={
             <div className="flex flex-wrap gap-2 justify-center">
               <Button onClick={() => openCapture("task")} className="rounded-xl gap-2">

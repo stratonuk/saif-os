@@ -41,7 +41,7 @@ import type {
 } from "@/lib/types";
 
 const STATUS_COLORS: Record<string, string> = {
-  lead: "text-blue-400 bg-blue-400/10",
+  lead: "text-violet-400 bg-violet-400/10",
   active: "text-emerald-400 bg-emerald-400/10",
   paused: "text-amber-400 bg-amber-400/10",
   completed: "text-violet-400 bg-violet-400/10",

@@ -34,6 +34,7 @@ export const USER_TABLES = [
   "vehicles",
   "vehicle_events",
   "vehicle_expenses",
+  "parking_tickets",
   "monthly_reviews",
   "straton_clients",
   "straton_projects",

@@ -1,7 +1,7 @@
 import type {
   Contact, Document, Goal, Idea, MonthlyReview, Note, Project, Reminder,
   SearchResult, StratonClient, StratonHosting, StratonInvoice, StratonProject,
-  Subscription, Task, Vehicle, VehicleEvent, WaitingItem,
+  Subscription, Task, Vehicle, VehicleEvent, ParkingTicket, WaitingItem,
 } from "./types";
 import { getOverdueTasks, getTodayTasks } from "./task-utils";
 import { getOverdueWaitingItems } from "./waiting-utils";
@@ -105,6 +105,7 @@ export function searchAllEntities(input: {
   subscriptions?: Subscription[];
   vehicles?: Vehicle[];
   vehicleEvents?: VehicleEvent[];
+  parkingTickets?: ParkingTicket[];
   monthlyReviews?: MonthlyReview[];
   documents?: Document[];
   stratonClients?: StratonClient[];
@@ -178,6 +179,11 @@ export function searchAllEntities(input: {
   for (const e of input.vehicleEvents ?? []) {
     if (e.title.toLowerCase().includes(q)) {
       results.push({ id: e.id, type: "vehicle_event", title: e.title, subtitle: e.event_type, href: "/car" });
+    }
+  }
+  for (const t of input.parkingTickets ?? []) {
+    if (t.pcn_number.toLowerCase().includes(q) || t.issuer?.toLowerCase().includes(q)) {
+      results.push({ id: t.id, type: "parking_ticket", title: `PCN ${t.pcn_number}`, subtitle: t.issuer ?? undefined, href: "/car" });
     }
   }
   for (const r of input.monthlyReviews ?? []) {

@@ -18,7 +18,7 @@ export function PaymentMethodBadge({
       className={cn(
         "text-xs border-0 gap-1 capitalize",
         method === "bank"
-          ? "bg-blue-400/10 text-blue-400"
+          ? "bg-teal-400/10 text-teal-400"
           : "bg-amber-400/10 text-amber-400",
         className
       )}

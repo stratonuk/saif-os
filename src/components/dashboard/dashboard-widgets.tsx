@@ -52,21 +52,21 @@ export function DashboardWidgets({
           accent="from-emerald-500/10 to-emerald-500/5"
         >
           <div className="space-y-1">
-            <p className="text-2xl font-bold">{formatPrivateCurrency(briefing.netBalance, showAmounts)}</p>
+            <p className="numeric text-2xl font-bold">{formatPrivateCurrency(briefing.netBalance, showAmounts)}</p>
             <p className="text-xs text-muted-foreground">net this month</p>
             <div className="flex gap-4 mt-3 text-sm">
-              <span className="text-emerald-400">
+              <span className="numeric text-success">
                 {showAmounts ? `+${formatCurrency(briefing.monthlyIncome)}` : "£••••"}
               </span>
-              <span className="text-red-400">
+              <span className="numeric text-destructive">
                 {showAmounts ? `-${formatCurrency(briefing.monthlyExpenses)}` : "£••••"}
               </span>
             </div>
           </div>
         </WidgetCard>
 
-        <WidgetCard title="Tasks" icon={CheckSquare} href="/tasks" accent="from-blue-500/10 to-blue-500/5">
-          <p className="text-2xl font-bold">{openTasks}</p>
+        <WidgetCard title="Tasks" icon={CheckSquare} href="/tasks" accent="from-violet-500/10 to-violet-500/5">
+          <p className="numeric text-2xl font-bold">{openTasks}</p>
           <p className="text-xs text-muted-foreground">open tasks</p>
           {briefing.overdueTasks.length > 0 && (
             <p className="text-sm text-red-400 mt-2">{briefing.overdueTasks.length} overdue</p>
@@ -82,14 +82,14 @@ export function DashboardWidgets({
         </WidgetCard>
 
         <WidgetCard title="Projects" icon={FolderKanban} href="/projects" accent="from-violet-500/10 to-violet-500/5">
-          <p className="text-2xl font-bold">{projects.filter((p) => p.status !== "paused").length}</p>
+          <p className="numeric text-2xl font-bold">{projects.filter((p) => p.status !== "paused").length}</p>
           <p className="text-xs text-muted-foreground">active projects</p>
           {briefing.projectNeedingAttention && (
             <div className="mt-3">
               <p className="text-sm font-medium truncate">{briefing.projectNeedingAttention.name}</p>
               <div className="mt-2 h-1 rounded-full bg-muted overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-violet-500"
+                  className="h-full bg-gradient-to-r from-success/70 to-success"
                   style={{ width: `${briefing.projectNeedingAttention.progress}%` }}
                 />
               </div>
@@ -98,7 +98,7 @@ export function DashboardWidgets({
         </WidgetCard>
 
         <WidgetCard title="Reminders" icon={Bell} href="/reminders" accent="from-amber-500/10 to-amber-500/5">
-          <p className="text-2xl font-bold">{briefing.upcomingReminders.length}</p>
+          <p className="numeric text-2xl font-bold">{briefing.upcomingReminders.length}</p>
           <p className="text-xs text-muted-foreground">due in 7 days</p>
           <div className="mt-3 space-y-1.5">
             {reminders.slice(0, 2).map((r) => (
@@ -111,7 +111,7 @@ export function DashboardWidgets({
         </WidgetCard>
 
         <WidgetCard title="Goals" icon={Target} href="/goals" accent="from-pink-500/10 to-pink-500/5">
-          <p className="text-2xl font-bold">{goals.length}</p>
+          <p className="numeric text-2xl font-bold">{goals.length}</p>
           <p className="text-xs text-muted-foreground">tracked goals</p>
           <div className="mt-3 space-y-2">
             {goals.slice(0, 2).map((g) => {
@@ -132,7 +132,7 @@ export function DashboardWidgets({
         </WidgetCard>
 
         <WidgetCard title="Waiting On" icon={Clock} href="/waiting-on" accent="from-orange-500/10 to-orange-500/5">
-          <p className="text-2xl font-bold">{activeWaiting.length}</p>
+          <p className="numeric text-2xl font-bold">{activeWaiting.length}</p>
           <p className="text-xs text-muted-foreground">pending items</p>
           {briefing.overdueWaitingCount > 0 && (
             <p className="text-sm text-red-400 mt-2 font-medium">{briefing.overdueWaitingCount} need chasing</p>
@@ -140,12 +140,12 @@ export function DashboardWidgets({
         </WidgetCard>
 
         <WidgetCard title="Subscriptions" icon={CreditCard} href="/subscriptions" accent="from-cyan-500/10 to-cyan-500/5">
-          <p className="text-2xl font-bold">{formatPrivateCurrency(subMonthly, showAmounts)}</p>
+          <p className="numeric text-2xl font-bold">{formatPrivateCurrency(subMonthly, showAmounts)}</p>
           <p className="text-xs text-muted-foreground">{activeSubs.length} active · per month</p>
         </WidgetCard>
 
-        <WidgetCard title="Straton" icon={Briefcase} href="/straton" accent="from-indigo-500/10 to-indigo-500/5">
-          <p className="text-2xl font-bold">{formatPrivateCurrency(briefing.stratonOutstanding, showAmounts)}</p>
+        <WidgetCard title="Straton" icon={Briefcase} href="/straton" accent="from-teal-500/10 to-teal-500/5">
+          <p className="numeric text-2xl font-bold">{formatPrivateCurrency(briefing.stratonOutstanding, showAmounts)}</p>
           <p className="text-xs text-muted-foreground">outstanding invoices</p>
           {briefing.carAlerts > 0 && (
             <Link href="/car" className="text-xs text-amber-400 mt-2 block hover:underline">{briefing.carAlerts} car alerts</Link>

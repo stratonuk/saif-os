@@ -102,7 +102,7 @@ export const REMINDER_URGENCY_COLORS = {
 export const WAITING_STATUSES = ["waiting", "chased", "resolved"] as const;
 export const WAITING_STATUS_LABELS: Record<string, string> = { waiting: "Waiting", chased: "Chased", resolved: "Resolved" };
 export const WAITING_STATUS_COLORS: Record<string, string> = {
-  waiting: "text-blue-400 bg-blue-400/10", chased: "text-amber-400 bg-amber-400/10", resolved: "text-emerald-400 bg-emerald-400/10",
+  waiting: "text-violet-400 bg-violet-400/10", chased: "text-amber-400 bg-amber-400/10", resolved: "text-emerald-400 bg-emerald-400/10",
 };
 
 export const NOTE_ENTITY_TYPES = ["none", "project", "contact", "idea", "goal"] as const;
@@ -123,11 +123,11 @@ export const TRANSACTION_CATEGORIES = [
 export const RECURRING_INTERVALS = ["weekly", "monthly", "quarterly", "yearly"] as const;
 
 export const PRIORITY_COLORS: Record<string, string> = {
-  low: "text-slate-400 bg-slate-400/10", medium: "text-blue-400 bg-blue-400/10",
+  low: "text-slate-400 bg-slate-400/10", medium: "text-teal-400 bg-teal-400/10",
   high: "text-amber-400 bg-amber-400/10", urgent: "text-red-400 bg-red-400/10",
 };
 export const STATUS_COLORS: Record<string, string> = {
-  todo: "text-slate-400 bg-slate-400/10", in_progress: "text-blue-400 bg-blue-400/10", done: "text-emerald-400 bg-emerald-400/10",
+  todo: "text-slate-400 bg-slate-400/10", in_progress: "text-violet-400 bg-violet-400/10", done: "text-emerald-400 bg-emerald-400/10",
 };
 
 export const QUICK_CAPTURE_TYPES = ["task", "reminder", "transaction", "idea", "contact", "note"] as const;
@@ -135,7 +135,7 @@ export const QUICK_CAPTURE_TYPES = ["task", "reminder", "transaction", "idea", "
 export const SEARCH_ENTITY_LABELS: Record<string, string> = {
   task: "Task", reminder: "Reminder", project: "Project", idea: "Idea", goal: "Goal",
   contact: "Contact", note: "Note", waiting: "Waiting On", subscription: "Subscription",
-  vehicle: "Vehicle", vehicle_event: "Car Event", monthly_review: "Monthly Review",
+  vehicle: "Vehicle", vehicle_event: "Car Event", parking_ticket: "Parking Ticket", monthly_review: "Monthly Review",
   straton_client: "Client", straton_project: "Straton Project", straton_invoice: "Invoice",
   straton_hosting: "Hosting", document: "Document",
 };
@@ -155,6 +155,15 @@ export const VEHICLE_EVENT_LABELS: Record<string, string> = {
   tax: "Road Tax", tyres: "Tyres", parts: "Parts", other: "Other",
 };
 
+export const PARKING_TICKET_STATUSES = ["unpaid", "paid", "appealed", "cancelled"] as const;
+export const PARKING_TICKET_STATUS_LABELS: Record<string, string> = {
+  unpaid: "Unpaid", paid: "Paid", appealed: "Appealed", cancelled: "Cancelled",
+};
+export const PARKING_TICKET_STATUS_COLORS: Record<string, string> = {
+  unpaid: "text-red-400 bg-red-400/10", paid: "text-emerald-400 bg-emerald-400/10",
+  appealed: "text-amber-400 bg-amber-400/10", cancelled: "text-muted-foreground bg-muted",
+};
+
 export const STRATON_CLIENT_STATUSES = ["lead", "active", "paused", "completed", "archived"] as const;
 export const STRATON_PROJECT_STATUSES = ["enquiry", "quoted", "approved", "in_progress", "review", "completed", "cancelled"] as const;
 export const STRATON_INVOICE_STATUSES = ["draft", "sent", "paid", "overdue", "cancelled"] as const;
@@ -165,7 +174,7 @@ export const STRATON_CLIENT_STATUS_LABELS: Record<string, string> = {
   lead: "Lead", active: "Active", paused: "Paused", completed: "Completed", archived: "Archived",
 };
 export const STRATON_INVOICE_STATUS_COLORS: Record<string, string> = {
-  draft: "text-slate-400 bg-slate-400/10", sent: "text-blue-400 bg-blue-400/10",
+  draft: "text-slate-400 bg-slate-400/10", sent: "text-violet-400 bg-violet-400/10",
   paid: "text-emerald-400 bg-emerald-400/10", overdue: "text-red-400 bg-red-400/10", cancelled: "text-muted-foreground bg-muted",
 };
 

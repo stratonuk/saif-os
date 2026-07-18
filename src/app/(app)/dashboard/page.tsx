@@ -3,7 +3,7 @@ import {
   getTasks, getReminders, getProjects, getTransactions, getGoals, getWaitingItems, getMonthlyFinance,
 } from "@/lib/data";
 import {
-  getSubscriptions, getVehicles, getStratonInvoices,
+  getSubscriptions, getVehicles, getParkingTickets, getStratonInvoices,
 } from "@/lib/module-data";
 import { buildDailyBriefing } from "@/lib/briefing-utils";
 import { buildInboxItems } from "@/lib/inbox-utils";
@@ -15,22 +15,26 @@ import { startOfWeek, endOfWeek, isWithinInterval } from "date-fns";
 export default async function DashboardPage() {
   const [
     tasks, reminders, projects, transactions, goals, waitingItems,
-    subscriptions, vehicles, stratonInvoices,
+    subscriptions, vehicles, parkingTickets, stratonInvoices,
   ] = await Promise.all([
     getTasks(), getReminders(), getProjects(), getTransactions(), getGoals(), getWaitingItems(),
-    getSubscriptions(), getVehicles(), getStratonInvoices(),
+    getSubscriptions(), getVehicles(), getParkingTickets(), getStratonInvoices(),
   ]);
 
   const now = new Date();
   const finance = getMonthlyFinance(transactions, now.getFullYear(), now.getMonth());
 
   const inboxItems = buildInboxItems({
-    tasks, reminders, waitingItems, subscriptions, vehicles,
+    tasks, reminders, waitingItems, subscriptions, vehicles, parkingTickets,
     stratonInvoices, stratonHosting: [], stratonReminders: [],
   });
 
   const subMonthly = getActiveSubscriptions(subscriptions)
     .reduce((s, sub) => s + monthlySubscriptionCost(sub), 0);
+
+  const ticketAlerts = parkingTickets.filter(
+    (t) => (t.status === "unpaid" || t.status === "appealed") && daysUntil(t.due_date) <= 7
+  ).length;
 
   const carAlerts = vehicles.reduce((count, v) => {
     let c = 0;
@@ -38,7 +42,7 @@ export default async function DashboardPage() {
       if (d && daysUntil(d) <= 30) c++;
     }
     return count + c;
-  }, 0);
+  }, ticketAlerts);
 
   const stratonOutstanding = getOverdueInvoices(stratonInvoices)
     .reduce((s, i) => s + Number(i.amount), 0);

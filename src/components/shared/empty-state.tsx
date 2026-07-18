@@ -23,7 +23,7 @@ export function EmptyState({
         className
       )}
     >
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-violet-500/10 ring-1 ring-border/50">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-success/10 ring-1 ring-border/50">
         <Icon className="h-8 w-8 text-primary/70" />
       </div>
       <h3 className="text-lg font-semibold">{title}</h3>

@@ -4,13 +4,13 @@ import { z } from "zod";
 import { insertRow, updateRow, deleteRow, getSql } from "@/lib/db";
 import {
   SUBSCRIPTION_BILLING_CYCLES, SUBSCRIPTION_CATEGORIES, SUBSCRIPTION_STATUSES,
-  PAYMENT_METHODS, VEHICLE_EVENT_TYPES,
+  PAYMENT_METHODS, VEHICLE_EVENT_TYPES, PARKING_TICKET_STATUSES,
 } from "@/lib/constants";
 import {
   isDemoMode, getAuthUserId, revalidateApp, withDemoStore, newId, nowIso,
 } from "@/lib/action-utils";
 import { emptyToNull } from "@/lib/form-helpers";
-import type { Document, Subscription, Vehicle, VehicleEvent, VehicleExpense, MonthlyReview } from "@/lib/types";
+import type { Document, Subscription, Vehicle, VehicleEvent, VehicleExpense, ParkingTicket, MonthlyReview } from "@/lib/types";
 
 // ─── Schemas ─────────────────────────────────────────────────
 const subscriptionSchema = z.object({
@@ -36,6 +36,17 @@ const vehicleEventSchema = z.object({
   title: z.string().min(1), event_date: z.string().min(1),
   mileage: z.coerce.number().optional(), garage: z.string().optional(),
   parts_replaced: z.string().optional(), cost: z.coerce.number().default(0),
+  notes: z.string().optional(),
+});
+
+const parkingTicketSchema = z.object({
+  vehicle_id: z.string().min(1),
+  pcn_number: z.string().min(1),
+  issuer: z.string().optional(),
+  amount: z.coerce.number().min(0).default(0),
+  issue_date: z.string().optional(),
+  due_date: z.string().min(1),
+  status: z.enum(PARKING_TICKET_STATUSES).default("unpaid"),
   notes: z.string().optional(),
 });
 
@@ -225,6 +236,61 @@ export async function createVehicleExpense(formData: FormData) {
     await insertRow("vehicle_expenses", { ...data, user_id: userId });
   }
   await revalidateApp("/car");
+  return { success: true };
+}
+
+// ─── Parking tickets ─────────────────────────────────────────
+export async function createParkingTicket(formData: FormData) {
+  const parsed = parkingTicketSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
+  const userId = await getAuthUserId();
+  if (!userId) return { error: { _form: ["Not authenticated"] } };
+  const row = {
+    ...parsed.data,
+    issuer: parsed.data.issuer ?? null,
+    issue_date: parsed.data.issue_date || null,
+    notes: parsed.data.notes ?? null,
+    paid_date: null,
+  };
+  if (isDemoMode()) {
+    await withDemoStore((store) => {
+      store.parking_tickets.unshift({
+        id: newId(), user_id: userId, ...row,
+        created_at: nowIso(), updated_at: nowIso(),
+      } as ParkingTicket);
+    });
+  } else {
+    await insertRow("parking_tickets", { ...row, user_id: userId });
+  }
+  await revalidateApp("/car", "/dashboard", "/inbox");
+  return { success: true };
+}
+
+export async function updateParkingTicketStatus(id: string, status: ParkingTicket["status"]) {
+  const paid_date = status === "paid" ? nowIso().slice(0, 10) : null;
+  if (isDemoMode()) {
+    await withDemoStore((store) => {
+      const t = store.parking_tickets.find((x) => x.id === id);
+      if (t) { t.status = status; t.paid_date = paid_date; t.updated_at = nowIso(); }
+    });
+  } else {
+    const userId = await getAuthUserId();
+    if (!userId) return { error: { _form: ["Not authenticated"] } };
+    await updateRow("parking_tickets", id, userId, { status, paid_date });
+  }
+  await revalidateApp("/car", "/dashboard", "/inbox");
+  return { success: true };
+}
+
+export async function deleteParkingTicket(id: string) {
+  if (isDemoMode()) {
+    await withDemoStore((s) => { s.parking_tickets = s.parking_tickets.filter((t) => t.id !== id); });
+  } else {
+    const userId = await getAuthUserId();
+    if (!userId) return { error: "Not authenticated" };
+    await deleteRow("parking_tickets", id, userId);
+  }
+  await revalidateApp("/car", "/dashboard", "/inbox");
   return { success: true };
 }
 

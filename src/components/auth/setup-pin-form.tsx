@@ -41,6 +41,8 @@ export function SetupPinForm() {
           minLength={4}
           maxLength={6}
           required
+          autoFocus
+          autoCapitalizeFirst={false}
           className="mt-1 tracking-[0.3em] text-center text-lg"
           autoComplete="new-password"
         />

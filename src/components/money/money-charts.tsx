@@ -15,15 +15,16 @@ import {
 } from "recharts";
 import { formatCurrency } from "@/lib/utils";
 
+/* Data colors: neutral-friendly palette anchored on profit green */
 const PIE_COLORS = [
-  "#0a84ff",
-  "#5e5ce6",
-  "#bf5af2",
-  "#ff375f",
-  "#ff9f0a",
-  "#32d74b",
-  "#64d2ff",
-  "#ac8e68",
+  "#10b981",
+  "#a3a3a3",
+  "#8b5cf6",
+  "#f43f5e",
+  "#f59e0b",
+  "#14b8a6",
+  "#e5e5e5",
+  "#737373",
 ];
 
 export function TrendBarChart({
@@ -41,9 +42,9 @@ export function TrendBarChart({
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
-          <XAxis dataKey="label" stroke="#98989d" fontSize={11} tickLine={false} axisLine={false} />
+          <XAxis dataKey="label" stroke="#a3a3a3" fontSize={11} tickLine={false} axisLine={false} />
           <YAxis
-            stroke="#98989d"
+            stroke="#a3a3a3"
             fontSize={11}
             tickLine={false}
             axisLine={false}
@@ -51,7 +52,7 @@ export function TrendBarChart({
           />
           <Tooltip
             contentStyle={{
-              background: "#1c1c1e",
+              background: "#171717",
               border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: "12px",
             }}
@@ -61,8 +62,8 @@ export function TrendBarChart({
             ]}
           />
           <Legend formatter={(v) => (v === "income" ? "Income" : "Expenses")} />
-          <Bar dataKey="income" fill="#30d158" radius={[6, 6, 0, 0]} name="income" />
-          <Bar dataKey="expenses" fill="#ff453a" radius={[6, 6, 0, 0]} name="expenses" />
+          <Bar dataKey="income" fill="#10b981" radius={[6, 6, 0, 0]} name="income" />
+          <Bar dataKey="expenses" fill="#ef4444" radius={[6, 6, 0, 0]} name="expenses" />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -99,7 +100,7 @@ export function CategoryPieChart({
             </Pie>
             <Tooltip
               contentStyle={{
-                background: "#1c1c1e",
+                background: "#171717",
                 border: "1px solid rgba(255,255,255,0.1)",
                 borderRadius: "12px",
               }}

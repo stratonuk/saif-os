@@ -193,6 +193,8 @@ export type {
   VehicleEvent,
   VehicleEventType,
   VehicleExpense,
+  ParkingTicket,
+  ParkingTicketStatus,
   MonthlyReview,
   StratonClient,
   StratonProject,

@@ -25,13 +25,13 @@ export function StatCard({
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-semibold tracking-tight">{value}</p>
+            <p className="numeric text-2xl font-semibold tracking-tight">{value}</p>
             {subtitle && (
               <p
                 className={cn(
                   "text-xs",
-                  trend === "up" && "text-emerald-400",
-                  trend === "down" && "text-red-400",
+                  trend === "up" && "text-success",
+                  trend === "down" && "text-destructive",
                   trend === "neutral" && "text-muted-foreground"
                 )}
               >

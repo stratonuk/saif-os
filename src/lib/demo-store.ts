@@ -27,6 +27,7 @@ import {
   demoVehicleEvents,
   demoVehicleExpenses,
   demoVehicles,
+  demoParkingTickets,
 } from "@/lib/demo-modules-data";
 import { DEMO_USER_ID } from "@/lib/form-helpers";
 import { normalizeTransactions } from "@/lib/transaction-utils";
@@ -52,6 +53,7 @@ import type {
   Vehicle,
   VehicleEvent,
   VehicleExpense,
+  ParkingTicket,
   WaitingItem,
 } from "@/lib/types";
 
@@ -72,6 +74,7 @@ export interface DemoStore {
   vehicles: Vehicle[];
   vehicle_events: VehicleEvent[];
   vehicle_expenses: VehicleExpense[];
+  parking_tickets: ParkingTicket[];
   documents: Document[];
   monthly_reviews: MonthlyReview[];
   straton_clients: StratonClient[];
@@ -103,6 +106,7 @@ const SEED: DemoStore = {
   vehicles: demoVehicles,
   vehicle_events: demoVehicleEvents,
   vehicle_expenses: demoVehicleExpenses,
+  parking_tickets: demoParkingTickets,
   documents: demoDocuments,
   monthly_reviews: demoMonthlyReviews,
   straton_clients: demoStratonClients,
@@ -118,7 +122,7 @@ const useLocalFileStore = process.env.VERCEL !== "1";
 
 const ARRAY_DEFAULTS: (keyof DemoStore)[] = [
   "waiting_items", "notes", "subscriptions", "vehicles", "vehicle_events",
-  "vehicle_expenses", "documents", "monthly_reviews", "straton_clients",
+  "vehicle_expenses", "parking_tickets", "documents", "monthly_reviews", "straton_clients",
   "straton_projects", "straton_invoices", "straton_hosting",
   "straton_client_reminders", "straton_activity",
 ];

@@ -91,7 +91,7 @@ export function MonthlyResetPageClient({ reviews }: { reviews: MonthlyReview[] }
         />
       ) : (
         <div className="space-y-6">
-          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-violet-500/5">
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-success/5">
             <CardHeader className="pb-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle className="text-xl">

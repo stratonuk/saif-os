@@ -7,11 +7,11 @@ import { selectForUser, type UserTable } from "@/lib/db";
 import type {
   Document, MonthlyReview, StratonActivity, StratonClient, StratonClientReminder,
   StratonHosting, StratonInvoice, StratonProject, Subscription, Vehicle,
-  VehicleEvent, VehicleExpense,
+  VehicleEvent, VehicleExpense, ParkingTicket,
 } from "@/lib/types";
 
 type StoreKey =
-  | "subscriptions" | "vehicles" | "vehicle_events" | "vehicle_expenses"
+  | "subscriptions" | "vehicles" | "vehicle_events" | "vehicle_expenses" | "parking_tickets"
   | "documents" | "monthly_reviews" | "straton_clients" | "straton_projects"
   | "straton_invoices" | "straton_hosting" | "straton_client_reminders" | "straton_activity";
 
@@ -59,6 +59,12 @@ export async function getVehicleExpenses(): Promise<VehicleExpense[]> {
   return isDemoMode()
     ? getFromStore<VehicleExpense>("vehicle_expenses", { col: "expense_date", asc: false })
     : getFromNeon<VehicleExpense>("vehicle_expenses", { col: "expense_date", asc: false });
+}
+
+export async function getParkingTickets(): Promise<ParkingTicket[]> {
+  return isDemoMode()
+    ? getFromStore<ParkingTicket>("parking_tickets", { col: "due_date" })
+    : getFromNeon<ParkingTicket>("parking_tickets", { col: "due_date" });
 }
 
 export async function getDocuments(): Promise<Document[]> {

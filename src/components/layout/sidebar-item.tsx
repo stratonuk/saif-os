@@ -24,7 +24,7 @@ export function SidebarItem({ item, pathname, onNavigate, compact }: SidebarItem
         "group relative flex items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150",
         compact ? "py-1.5" : "py-2",
         isActive
-          ? "bg-primary/10 text-primary ring-1 ring-inset ring-primary/20 shadow-[0_0_0_1px_rgba(59,130,246,0.05)]"
+          ? "bg-primary/10 text-primary ring-1 ring-inset ring-primary/20"
           : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
       )}
     >

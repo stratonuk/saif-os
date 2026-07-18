@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Car, Plus, Pencil, Wrench, Receipt } from "lucide-react";
+import { Car, Plus, Pencil, Wrench, Receipt, TicketX, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -15,16 +15,23 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormSelect } from "@/components/shared/form-field";
-import { VEHICLE_EVENT_TYPES, VEHICLE_EVENT_LABELS } from "@/lib/constants";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { ConfirmDelete } from "@/components/shared/confirm-delete";
+import {
+  VEHICLE_EVENT_TYPES, VEHICLE_EVENT_LABELS,
+  PARKING_TICKET_STATUS_LABELS, PARKING_TICKET_STATUS_COLORS,
+} from "@/lib/constants";
+import { formatCurrency, formatDate, daysUntil, cn } from "@/lib/utils";
 import {
   createVehicle,
   updateVehicle,
   createVehicleEvent,
   createVehicleExpense,
+  createParkingTicket,
+  updateParkingTicketStatus,
+  deleteParkingTicket,
 } from "@/actions/modules";
 import { useRefreshAction } from "@/hooks/use-refresh-action";
-import type { Vehicle, VehicleEvent, VehicleExpense } from "@/lib/types";
+import type { Vehicle, VehicleEvent, VehicleExpense, ParkingTicket } from "@/lib/types";
 
 const EXPENSE_CATEGORIES = ["fuel", "maintenance", "insurance", "tax", "parking", "other"] as const;
 
@@ -32,16 +39,19 @@ export function CarHubPageClient({
   vehicle,
   events,
   expenses,
+  tickets,
 }: {
   vehicle: Vehicle | null;
   events: VehicleEvent[];
   expenses: VehicleExpense[];
+  tickets: ParkingTicket[];
 }) {
   const { run, isPending } = useRefreshAction();
   const [tab, setTab] = useState("profile");
   const [vehicleDialogOpen, setVehicleDialogOpen] = useState(false);
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
+  const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
 
   const sortedEvents = useMemo(
     () => [...events].sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime()),
@@ -56,6 +66,28 @@ export function CarHubPageClient({
   const expenseTotal = useMemo(
     () => expenses.reduce((sum, e) => sum + Number(e.amount), 0),
     [expenses]
+  );
+
+  const sortedTickets = useMemo(() => {
+    const openFirst = { unpaid: 0, appealed: 1, paid: 2, cancelled: 3 };
+    return [...tickets].sort((a, b) => {
+      const byStatus = openFirst[a.status] - openFirst[b.status];
+      if (byStatus !== 0) return byStatus;
+      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+    });
+  }, [tickets]);
+
+  const openTickets = useMemo(
+    () => tickets.filter((t) => t.status === "unpaid" || t.status === "appealed"),
+    [tickets]
+  );
+
+  const nextTicketDue = useMemo(
+    () =>
+      [...openTickets].sort(
+        (a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+      )[0] ?? null,
+    [openTickets]
   );
 
   async function handleVehicleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -89,6 +121,29 @@ export function CarHubPageClient({
     if (result?.error) { toast.error("Could not save expense"); return; }
     toast.success("Expense added");
     setExpenseDialogOpen(false);
+  }
+
+  async function handleTicketSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!vehicle) return;
+    const formData = new FormData(e.currentTarget);
+    formData.set("vehicle_id", vehicle.id);
+    const result = await run(() => createParkingTicket(formData));
+    if (result?.error) { toast.error("Could not save ticket"); return; }
+    toast.success("Parking ticket added");
+    setTicketDialogOpen(false);
+  }
+
+  async function handleMarkTicketPaid(id: string) {
+    const result = await run(() => updateParkingTicketStatus(id, "paid"));
+    if (result?.error) { toast.error("Could not update ticket"); return; }
+    toast.success("Ticket marked as paid");
+  }
+
+  async function handleDeleteTicket(id: string) {
+    const result = await run(() => deleteParkingTicket(id));
+    if (result?.error) { toast.error("Could not delete ticket"); return; }
+    toast.success("Ticket deleted");
   }
 
   if (!vehicle) {
@@ -132,10 +187,18 @@ export function CarHubPageClient({
       />
 
       <Tabs value={tab} onValueChange={setTab} className="w-full">
-        <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:inline-flex">
+        <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:inline-flex">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
+          <TabsTrigger value="tickets" className="gap-1.5">
+            Tickets
+            {openTickets.length > 0 && (
+              <span className="rounded-full bg-red-500/15 px-1.5 text-[10px] font-semibold text-red-400">
+                {openTickets.length}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -163,10 +226,11 @@ export function CarHubPageClient({
                 </div>
               </div>
 
-              <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-3 lg:grid-cols-4">
                 {vehicle.mot_date && <CountdownBadge date={vehicle.mot_date} label="MOT" />}
                 {vehicle.insurance_expiry && <CountdownBadge date={vehicle.insurance_expiry} label="Insurance" />}
                 {vehicle.tax_date && <CountdownBadge date={vehicle.tax_date} label="Road Tax" />}
+                {nextTicketDue && <CountdownBadge date={nextTicketDue.due_date} label={`PCN ${nextTicketDue.pcn_number}`} />}
               </div>
 
               {vehicle.notes && (
@@ -274,6 +338,101 @@ export function CarHubPageClient({
             </div>
           )}
         </TabsContent>
+        <TabsContent value="tickets">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
+              <p className="numeric text-2xl font-bold">
+                {formatCurrency(openTickets.reduce((s, t) => s + Number(t.amount), 0))}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {openTickets.length} outstanding ticket{openTickets.length === 1 ? "" : "s"}
+              </p>
+            </div>
+            <Button onClick={() => setTicketDialogOpen(true)} className="rounded-xl" size="sm">
+              <Plus className="h-4 w-4 mr-1" /> Add Ticket
+            </Button>
+          </div>
+
+          {sortedTickets.length === 0 ? (
+            <EmptyState
+              icon={TicketX}
+              title="No parking tickets"
+              description="Long may it last. Log a PCN here and it'll appear on your dashboard a week before the payment deadline."
+              action={
+                <Button onClick={() => setTicketDialogOpen(true)} className="rounded-xl" size="sm">
+                  Add Ticket
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {sortedTickets.map((ticket) => {
+                const isOpen = ticket.status === "unpaid" || ticket.status === "appealed";
+                const days = daysUntil(ticket.due_date);
+                return (
+                  <Card
+                    key={ticket.id}
+                    className={cn(
+                      "touch-manipulation",
+                      isOpen && days < 0 && "border-red-500/40",
+                      isOpen && days >= 0 && days <= 7 && "border-amber-400/40"
+                    )}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-medium">PCN {ticket.pcn_number}</h3>
+                            <Badge className={cn("border-0", PARKING_TICKET_STATUS_COLORS[ticket.status])}>
+                              {PARKING_TICKET_STATUS_LABELS[ticket.status]}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {ticket.issuer && <span>{ticket.issuer} · </span>}
+                            {isOpen ? (
+                              <span className={cn(days < 0 && "text-red-400 font-medium", days >= 0 && days <= 7 && "text-amber-400 font-medium")}>
+                                {days < 0
+                                  ? `Payment overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"}`
+                                  : days === 0
+                                    ? "Pay by today"
+                                    : `Pay by ${formatDate(ticket.due_date)} (${days} day${days === 1 ? "" : "s"} left)`}
+                              </span>
+                            ) : (
+                              <span>
+                                {ticket.status === "paid" && ticket.paid_date
+                                  ? `Paid ${formatDate(ticket.paid_date)}`
+                                  : `Was due ${formatDate(ticket.due_date)}`}
+                              </span>
+                            )}
+                          </p>
+                          {ticket.notes && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ticket.notes}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <p className="numeric text-lg font-semibold mr-2">{formatCurrency(ticket.amount)}</p>
+                          {isOpen && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="rounded-xl gap-1.5"
+                              disabled={isPending}
+                              onClick={() => handleMarkTicketPaid(ticket.id)}
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                              <span className="hidden sm:inline">Mark paid</span>
+                            </Button>
+                          )}
+                          <ConfirmDelete label="Delete ticket" onDelete={() => handleDeleteTicket(ticket.id)} />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
 
       <VehicleDialog
@@ -305,6 +464,28 @@ export function CarHubPageClient({
             <div><Label>Notes</Label><Textarea name="notes" className="mt-1" /></div>
             <Button type="submit" className="w-full rounded-xl" disabled={isPending}>
               {isPending ? "Saving…" : "Save Event"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={ticketDialogOpen} onOpenChange={setTicketDialogOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Add Parking Ticket</DialogTitle></DialogHeader>
+          <form onSubmit={handleTicketSubmit} className="space-y-4">
+            <div>
+              <Label>PCN number</Label>
+              <Input name="pcn_number" required autoCapitalizeFirst={false} placeholder="e.g. WM12345678" className="mt-1" />
+            </div>
+            <div><Label>Issuer</Label><Input name="issuer" placeholder="Council or parking company" className="mt-1" /></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div><Label>Amount (£)</Label><Input name="amount" type="number" step="0.01" min="0" required className="mt-1" /></div>
+              <div><Label>Date issued</Label><Input name="issue_date" type="date" className="mt-1" /></div>
+            </div>
+            <div><Label>Pay by</Label><Input name="due_date" type="date" required className="mt-1" /></div>
+            <div><Label>Notes</Label><Textarea name="notes" placeholder="e.g. 50% discount if paid within 14 days" className="mt-1" /></div>
+            <Button type="submit" className="w-full rounded-xl" disabled={isPending}>
+              {isPending ? "Saving…" : "Save Ticket"}
             </Button>
           </form>
         </DialogContent>

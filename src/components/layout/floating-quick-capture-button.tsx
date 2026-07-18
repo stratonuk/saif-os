@@ -18,8 +18,8 @@ export function FloatingQuickCaptureButton() {
       onClick={() => openCapture()}
       aria-label="Quick capture"
       className={cn(
-        "fixed z-40 flex items-center justify-center rounded-full text-white",
-        "bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg shadow-primary/30",
+        "fixed z-40 flex items-center justify-center rounded-full cursor-pointer",
+        "bg-primary text-primary-foreground shadow-lg shadow-black/30",
         "transition-transform active:scale-95 hover:scale-105",
         // mobile FAB
         "h-14 w-14 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4",

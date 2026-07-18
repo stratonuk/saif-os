@@ -93,6 +93,24 @@ export interface VehicleExpense {
   created_at: string;
 }
 
+export type ParkingTicketStatus = "unpaid" | "paid" | "appealed" | "cancelled";
+
+export interface ParkingTicket {
+  id: string;
+  user_id: string;
+  vehicle_id: string;
+  pcn_number: string;
+  issuer?: string | null;
+  amount: number;
+  issue_date?: string | null;
+  due_date: string;
+  status: ParkingTicketStatus;
+  paid_date?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ─── Monthly Reviews ─────────────────────────────────────────
 export interface MonthlyReview {
   id: string;

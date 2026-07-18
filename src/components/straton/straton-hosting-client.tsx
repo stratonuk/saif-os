@@ -25,7 +25,7 @@ const STATUS_COLORS: Record<string, string> = {
   active: "text-emerald-400 bg-emerald-400/10",
   expiring_soon: "text-amber-400 bg-amber-400/10",
   expired: "text-red-400 bg-red-400/10",
-  transferred: "text-blue-400 bg-blue-400/10",
+  transferred: "text-teal-400 bg-teal-400/10",
   cancelled: "text-muted-foreground bg-muted",
 };
 

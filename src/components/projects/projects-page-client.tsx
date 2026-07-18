@@ -70,7 +70,7 @@ export function ProjectsPageClient({
                       <Card key={project.id} className="shadow-sm cursor-pointer hover:border-primary/30" onClick={() => { setEditing(project); setDialogOpen(true); }}>
                         <CardContent className="p-4">
                           <h4 className="font-medium text-sm">{project.name}</h4>
-                          <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full" style={{ width: `${project.progress}%` }} /></div>
+                          <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full bg-gradient-to-r from-success/70 to-success rounded-full" style={{ width: `${project.progress}%` }} /></div>
                           <p className={cnProfit(profit)}>{formatCurrency(profit)} net · {linked.length} tasks</p>
                         </CardContent>
                       </Card>

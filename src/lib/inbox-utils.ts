@@ -1,6 +1,6 @@
 import type {
   Reminder, StratonClientReminder, StratonHosting, StratonInvoice,
-  Subscription, Task, Vehicle, WaitingItem, InboxItem,
+  Subscription, Task, Vehicle, ParkingTicket, WaitingItem, InboxItem,
 } from "./types";
 import { daysUntil } from "./utils";
 import { isTaskOverdue } from "./task-utils";
@@ -19,6 +19,7 @@ export function buildInboxItems(input: {
   waitingItems: WaitingItem[];
   subscriptions: Subscription[];
   vehicles: Vehicle[];
+  parkingTickets?: ParkingTicket[];
   stratonInvoices: StratonInvoice[];
   stratonHosting: StratonHosting[];
   stratonReminders: StratonClientReminder[];
@@ -74,6 +75,20 @@ export function buildInboxItems(input: {
           href: "/car", due_date: date,
         });
       }
+    }
+  }
+
+  // Unpaid parking tickets surface a week before the pay-by deadline
+  for (const t of (input.parkingTickets ?? []).filter((t) => t.status === "unpaid" || t.status === "appealed")) {
+    const days = daysUntil(t.due_date);
+    if (days <= 7) {
+      items.push({
+        id: `pcn-${t.id}`, type: "parking_ticket",
+        title: `Parking ticket — PCN ${t.pcn_number}`,
+        subtitle: [t.issuer, t.amount > 0 ? `£${t.amount}` : null].filter(Boolean).join(" · ") || undefined,
+        urgency: urgencyFromDays(days),
+        href: "/car", due_date: t.due_date,
+      });
     }
   }
 

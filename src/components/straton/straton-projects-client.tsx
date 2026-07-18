@@ -23,7 +23,7 @@ import type { StratonClient, StratonProject } from "@/lib/types";
 
 const STATUS_COLORS: Record<string, string> = {
   enquiry: "text-slate-400 bg-slate-400/10",
-  quoted: "text-blue-400 bg-blue-400/10",
+  quoted: "text-violet-400 bg-violet-400/10",
   approved: "text-violet-400 bg-violet-400/10",
   in_progress: "text-amber-400 bg-amber-400/10",
   review: "text-cyan-400 bg-cyan-400/10",

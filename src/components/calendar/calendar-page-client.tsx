@@ -133,7 +133,7 @@ export function CalendarPageClient({ tasks, reminders }: CalendarPageClientProps
                           key={`${e.kind}-${e.id}`}
                           className={cn(
                             "truncate rounded px-1 py-0.5 text-[10px] font-medium",
-                            e.kind === "task" ? "bg-blue-500/15 text-blue-400" : "bg-amber-400/15 text-amber-400"
+                            e.kind === "task" ? "bg-violet-500/15 text-violet-400" : "bg-amber-400/15 text-amber-400"
                           )}
                         >
                           {e.title}
@@ -165,7 +165,7 @@ export function CalendarPageClient({ tasks, reminders }: CalendarPageClientProps
                     <span
                       className={cn(
                         "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
-                        e.kind === "task" ? "bg-blue-500/15 text-blue-400" : "bg-amber-400/15 text-amber-400"
+                        e.kind === "task" ? "bg-violet-500/15 text-violet-400" : "bg-amber-400/15 text-amber-400"
                       )}
                     >
                       {e.kind === "task" ? <CheckSquare className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />}

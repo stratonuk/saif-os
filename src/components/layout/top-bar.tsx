@@ -28,10 +28,7 @@ export function TopBar({ userName, showLogout = true }: TopBarProps) {
         <p className="text-sm text-muted-foreground" suppressHydrationWarning>
           {getGreeting()}
         </p>
-        <h2 className="text-xl font-semibold tracking-tight">
-          {userName}
-          <span className="text-muted-foreground"> 👋</span>
-        </h2>
+        <h2 className="text-xl font-semibold tracking-tight">{userName}</h2>
       </div>
       <div className="flex items-center gap-2">
         <Button

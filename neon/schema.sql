@@ -239,6 +239,22 @@ create table public.vehicle_expenses (
   created_at timestamptz not null default now()
 );
 
+create table public.parking_tickets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.users (id) on delete cascade not null,
+  vehicle_id uuid references public.vehicles on delete cascade not null,
+  pcn_number text not null,
+  issuer text,
+  amount numeric not null default 0,
+  issue_date date,
+  due_date date not null,
+  status text not null default 'unpaid' check (status in ('unpaid', 'paid', 'appealed', 'cancelled')),
+  paid_date date,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- Monthly reviews
 create table public.monthly_reviews (
   id uuid primary key default gen_random_uuid(),
@@ -427,6 +443,10 @@ create trigger vehicles_updated_at
 
 create trigger vehicle_events_updated_at
   before update on public.vehicle_events
+  for each row execute function public.set_updated_at();
+
+create trigger parking_tickets_updated_at
+  before update on public.parking_tickets
   for each row execute function public.set_updated_at();
 
 create trigger monthly_reviews_updated_at

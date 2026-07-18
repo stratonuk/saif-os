@@ -269,7 +269,7 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
               Income by payment method
             </p>
             <div className="flex justify-between text-sm">
-              <span className="text-blue-400">
+              <span className="text-teal-400">
                 Bank {formatCurrency(monthByPayment.income.bank)}
               </span>
               <span className="text-amber-400">
@@ -278,7 +278,7 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden flex">
               <div
-                className="h-full bg-blue-500"
+                className="h-full bg-teal-500"
                 style={{
                   width: `${
                     monthByPayment.income.total
@@ -306,7 +306,7 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
               Expenses by payment method
             </p>
             <div className="flex justify-between text-sm">
-              <span className="text-blue-400">
+              <span className="text-teal-400">
                 Bank {formatCurrency(monthByPayment.expense.bank)}
               </span>
               <span className="text-amber-400">
@@ -315,7 +315,7 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
             </div>
             <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden flex">
               <div
-                className="h-full bg-blue-500"
+                className="h-full bg-teal-500"
                 style={{
                   width: `${
                     monthByPayment.expense.total
@@ -427,7 +427,7 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
                   </div>
                   <div className="h-2 rounded-full bg-muted overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-violet-500"
+                      className="h-full rounded-full bg-gradient-to-r from-success/70 to-success"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
