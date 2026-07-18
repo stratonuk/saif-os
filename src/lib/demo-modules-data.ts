@@ -18,32 +18,32 @@ import type {
 export const demoSubscriptions: Subscription[] = [
   {
     id: "sub1", user_id: DEMO_USER_ID, name: "Notion", provider: "Notion Labs", cost: 10,
-    billing_cycle: "monthly", renewal_date: "2026-07-01", category: "software",
-    payment_method: "bank", auto_renew: true, status: "active", reminder_days_before: 7,
+    billing_cycle: "monthly", renewal_day: 1, renewal_date: "2026-07-01", category: "software",
+    payment_method: "hsbc", auto_renew: true, status: "active", reminder_days_before: 7,
     notes: "Team workspace", created_at: "2026-01-01T00:00:00Z", updated_at: "2026-06-01T00:00:00Z",
   },
   {
     id: "sub2", user_id: DEMO_USER_ID, name: "Figma", provider: "Figma Inc", cost: 15,
-    billing_cycle: "monthly", renewal_date: "2026-07-15", category: "software",
-    payment_method: "bank", auto_renew: true, status: "active", reminder_days_before: 7,
+    billing_cycle: "monthly", renewal_day: 15, renewal_date: "2026-07-15", category: "software",
+    payment_method: "monzo", auto_renew: true, status: "active", reminder_days_before: 7,
     notes: null, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-06-01T00:00:00Z",
   },
   {
     id: "sub3", user_id: DEMO_USER_ID, name: "Vercel Pro", provider: "Vercel", cost: 20,
-    billing_cycle: "monthly", renewal_date: "2026-06-28", category: "hosting",
-    payment_method: "bank", auto_renew: true, status: "active", reminder_days_before: 3,
+    billing_cycle: "monthly", renewal_day: 28, renewal_date: "2026-06-28", category: "hosting",
+    payment_method: "amex", auto_renew: true, status: "active", reminder_days_before: 3,
     notes: "Client sites", created_at: "2026-01-01T00:00:00Z", updated_at: "2026-06-01T00:00:00Z",
   },
   {
     id: "sub4", user_id: DEMO_USER_ID, name: "Netflix", provider: "Netflix", cost: 17.99,
-    billing_cycle: "monthly", renewal_date: "2026-07-10", category: "entertainment",
-    payment_method: "bank", auto_renew: true, status: "active", reminder_days_before: 7,
+    billing_cycle: "monthly", renewal_day: 10, renewal_date: "2026-07-10", category: "entertainment",
+    payment_method: "revolut", auto_renew: true, status: "active", reminder_days_before: 7,
     notes: null, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-06-01T00:00:00Z",
   },
   {
     id: "sub5", user_id: DEMO_USER_ID, name: "Adobe CC", provider: "Adobe", cost: 54.99,
-    billing_cycle: "monthly", renewal_date: "2026-06-20", category: "software",
-    payment_method: "bank", auto_renew: false, status: "cancelled", reminder_days_before: 7,
+    billing_cycle: "monthly", renewal_day: 20, renewal_date: "2026-06-20", category: "software",
+    payment_method: "hsbc", auto_renew: false, status: "cancelled", reminder_days_before: 7,
     notes: "Cancelled June 2026", created_at: "2026-01-01T00:00:00Z", updated_at: "2026-06-01T00:00:00Z",
   },
 ];

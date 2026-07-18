@@ -28,15 +28,15 @@ insert into public.reminders (user_id, title, type, due_date, recurring, recurri
 
 -- Transactions (June 2026 sample month)
 insert into public.transactions (user_id, title, amount, type, category, payment_method, date) values
-  (:user_id, 'Consulting retainer - Acme Corp', 8500, 'income', 'Consulting', 'bank', '2026-06-01'),
-  (:user_id, 'SaaS subscriptions revenue', 1200, 'income', 'Product', 'bank', '2026-06-05'),
-  (:user_id, 'Workshop facilitation', 2200, 'income', 'Consulting', 'bank', '2026-06-12'),
-  (:user_id, 'Rent', 1850, 'expense', 'Housing', 'bank', '2026-06-01'),
+  (:user_id, 'Consulting retainer - Acme Corp', 8500, 'income', 'Consulting', 'hsbc', '2026-06-01'),
+  (:user_id, 'SaaS subscriptions revenue', 1200, 'income', 'Product', 'monzo', '2026-06-05'),
+  (:user_id, 'Workshop facilitation', 2200, 'income', 'Consulting', 'revolut', '2026-06-12'),
+  (:user_id, 'Rent', 1850, 'expense', 'Housing', 'hsbc', '2026-06-01'),
   (:user_id, 'Groceries', 420, 'expense', 'Food', 'cash', '2026-06-08'),
-  (:user_id, 'AWS & Vercel', 180, 'expense', 'Software', 'bank', '2026-06-03'),
-  (:user_id, 'Gym membership', 65, 'expense', 'Health', 'bank', '2026-06-01'),
+  (:user_id, 'AWS & Vercel', 180, 'expense', 'Software', 'amex', '2026-06-03'),
+  (:user_id, 'Gym membership', 65, 'expense', 'Health', 'chase', '2026-06-01'),
   (:user_id, 'Client dinner', 95, 'expense', 'Business', 'cash', '2026-06-14'),
-  (:user_id, 'Dividend income', 350, 'income', 'Investments', 'bank', '2026-06-20');
+  (:user_id, 'Dividend income', 350, 'income', 'Investments', 'tsb', '2026-06-20');
 
 -- Ideas
 insert into public.ideas (user_id, title, description, category, priority_score, status) values

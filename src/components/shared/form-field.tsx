@@ -23,18 +23,25 @@ export function FormSelect({
   label,
   name,
   defaultValue,
+  value,
   options,
   onChange,
 }: {
   label: string;
   name: string;
   defaultValue?: string;
+  value?: string;
   options: { value: string; label: string }[];
   onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }) {
   return (
     <FormField label={label}>
-      <NativeSelect name={name} defaultValue={defaultValue} options={options} onChange={onChange} />
+      <NativeSelect
+        name={name}
+        {...(value !== undefined ? { value } : { defaultValue })}
+        options={options}
+        onChange={onChange}
+      />
     </FormField>
   );
 }

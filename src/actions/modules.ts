@@ -11,16 +11,49 @@ import {
 } from "@/lib/action-utils";
 import { emptyToNull } from "@/lib/form-helpers";
 import type { Document, Subscription, Vehicle, VehicleEvent, VehicleExpense, ParkingTicket, MonthlyReview } from "@/lib/types";
+import { computeNextRenewalDate } from "@/lib/subscription-utils";
 
 // ─── Schemas ─────────────────────────────────────────────────
 const subscriptionSchema = z.object({
   name: z.string().min(1), provider: z.string().optional(),
   cost: z.coerce.number().min(0), billing_cycle: z.enum(SUBSCRIPTION_BILLING_CYCLES),
-  renewal_date: z.string().optional(), category: z.enum(SUBSCRIPTION_CATEGORIES),
+  renewal_day: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number().int().min(1).max(31).optional()
+  ),
+  renewal_date: z.string().optional(),
+  renewal_month: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number().int().min(1).max(12).optional()
+  ),
+  category: z.enum(SUBSCRIPTION_CATEGORIES),
   payment_method: z.enum(PAYMENT_METHODS), auto_renew: z.coerce.boolean(),
   status: z.enum(SUBSCRIPTION_STATUSES), reminder_days_before: z.coerce.number().default(7),
   notes: z.string().optional(),
 });
+
+function resolveSubscriptionRenewal(data: z.infer<typeof subscriptionSchema>) {
+  const renewal_day = data.renewal_day ?? null;
+  let renewal_date = data.renewal_date || null;
+
+  if (renewal_day) {
+    renewal_date = computeNextRenewalDate({
+      renewalDay: renewal_day,
+      billingCycle: data.billing_cycle === "weekly" ? "monthly" : data.billing_cycle,
+      renewalMonth:
+        data.billing_cycle === "yearly" && data.renewal_month
+          ? data.renewal_month - 1
+          : undefined,
+    });
+  }
+
+  const { renewal_month: _m, ...rest } = data;
+  return {
+    ...rest,
+    renewal_day,
+    renewal_date,
+  };
+}
 
 const vehicleSchema = z.object({
   make: z.string().min(1), model: z.string().min(1),
@@ -62,22 +95,31 @@ export async function createSubscription(formData: FormData) {
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
   const userId = await getAuthUserId();
   if (!userId) return { error: { _form: ["Not authenticated"] } };
+  const data = resolveSubscriptionRenewal(parsed.data);
 
   if (isDemoMode()) {
     await withDemoStore((store) => {
       store.subscriptions.unshift({
-        id: newId(), user_id: userId, ...parsed.data,
-        provider: parsed.data.provider ?? null, renewal_date: parsed.data.renewal_date ?? null,
-        notes: parsed.data.notes ?? null, created_at: nowIso(), updated_at: nowIso(),
+        id: newId(), user_id: userId, ...data,
+        provider: data.provider ?? null, notes: data.notes ?? null,
+        created_at: nowIso(), updated_at: nowIso(),
       } as Subscription);
     });
   } else {
     try {
       await insertRow("subscriptions", {
-        ...parsed.data,
-        provider: parsed.data.provider ?? null,
-        renewal_date: parsed.data.renewal_date ?? null,
-        notes: parsed.data.notes ?? null,
+        name: data.name,
+        provider: data.provider ?? null,
+        cost: data.cost,
+        billing_cycle: data.billing_cycle,
+        renewal_day: data.renewal_day,
+        renewal_date: data.renewal_date,
+        category: data.category,
+        payment_method: data.payment_method,
+        auto_renew: data.auto_renew,
+        status: data.status,
+        reminder_days_before: data.reminder_days_before,
+        notes: data.notes ?? null,
         user_id: userId,
       });
     } catch (e) {
@@ -91,19 +133,36 @@ export async function createSubscription(formData: FormData) {
 export async function updateSubscription(id: string, formData: FormData) {
   const parsed = subscriptionSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors };
+  const data = resolveSubscriptionRenewal(parsed.data);
   if (isDemoMode()) {
     await withDemoStore((store) => {
       const i = store.subscriptions.findIndex((s) => s.id === id);
-      if (i >= 0) store.subscriptions[i] = { ...store.subscriptions[i], ...parsed.data, updated_at: nowIso() };
+      if (i >= 0) {
+        store.subscriptions[i] = {
+          ...store.subscriptions[i],
+          ...data,
+          provider: data.provider ?? null,
+          notes: data.notes ?? null,
+          updated_at: nowIso(),
+        };
+      }
     });
   } else {
     const userId = await getAuthUserId();
     if (!userId) return { error: { _form: ["Not authenticated"] } };
     await updateRow("subscriptions", id, userId, {
-      ...parsed.data,
-      provider: parsed.data.provider ?? null,
-      renewal_date: parsed.data.renewal_date ?? null,
-      notes: parsed.data.notes ?? null,
+      name: data.name,
+      provider: data.provider ?? null,
+      cost: data.cost,
+      billing_cycle: data.billing_cycle,
+      renewal_day: data.renewal_day,
+      renewal_date: data.renewal_date,
+      category: data.category,
+      payment_method: data.payment_method,
+      auto_renew: data.auto_renew,
+      status: data.status,
+      reminder_days_before: data.reminder_days_before,
+      notes: data.notes ?? null,
     });
   }
   await revalidateApp("/subscriptions", "/dashboard", "/inbox");

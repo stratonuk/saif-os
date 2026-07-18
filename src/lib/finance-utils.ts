@@ -1,6 +1,18 @@
+import { PAYMENT_METHODS } from "./constants";
 import type { PaymentMethod, Transaction } from "./types";
+import { normalizePaymentMethod } from "./transaction-utils";
 
 export type MonthKey = `${number}-${number}`;
+
+export type PaymentTotals = Record<PaymentMethod, number> & { total: number };
+
+function emptyPaymentTotals(): PaymentTotals {
+  const totals = { total: 0 } as PaymentTotals;
+  for (const method of PAYMENT_METHODS) {
+    totals[method] = 0;
+  }
+  return totals;
+}
 
 export function toMonthKey(year: number, month: number): MonthKey {
   return `${year}-${month}`;
@@ -40,27 +52,29 @@ export function sumByType(transactions: Transaction[]) {
   return { income, expenses, net: income - expenses };
 }
 
-export function sumByPaymentMethod(transactions: Transaction[]) {
-  const bank = transactions
-    .filter((t) => t.payment_method === "bank")
-    .reduce((s, t) => s + Number(t.amount), 0);
-  const cash = transactions
-    .filter((t) => t.payment_method === "cash")
-    .reduce((s, t) => s + Number(t.amount), 0);
-  return { bank, cash };
+export function sumByPaymentMethod(transactions: Transaction[]): PaymentTotals {
+  const totals = emptyPaymentTotals();
+  for (const t of transactions) {
+    const method = normalizePaymentMethod(t.payment_method);
+    const amount = Number(t.amount);
+    totals[method] += amount;
+    totals.total += amount;
+  }
+  return totals;
 }
 
 export function sumByTypeAndPayment(transactions: Transaction[]) {
   const result = {
-    income: { bank: 0, cash: 0, total: 0 },
-    expense: { bank: 0, cash: 0, total: 0 },
+    income: emptyPaymentTotals(),
+    expense: emptyPaymentTotals(),
   };
-  transactions.forEach((t) => {
+  for (const t of transactions) {
     const amount = Number(t.amount);
+    const method = normalizePaymentMethod(t.payment_method);
     const bucket = t.type === "income" ? result.income : result.expense;
-    bucket[t.payment_method] += amount;
+    bucket[method] += amount;
     bucket.total += amount;
-  });
+  }
   return result;
 }
 
@@ -144,7 +158,9 @@ export function filterTransactions(
     list = list.filter((t) => t.category === opts.category);
   }
   if (opts.paymentMethod && opts.paymentMethod !== "all") {
-    list = list.filter((t) => t.payment_method === opts.paymentMethod);
+    list = list.filter(
+      (t) => normalizePaymentMethod(t.payment_method) === opts.paymentMethod
+    );
   }
   if (opts.search?.trim()) {
     const q = opts.search.toLowerCase();

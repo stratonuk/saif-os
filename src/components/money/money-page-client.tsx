@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FormSelect } from "@/components/shared/form-field";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TRANSACTION_CATEGORIES, PAYMENT_METHOD_LABELS } from "@/lib/constants";
+import { TRANSACTION_CATEGORIES, PAYMENT_METHODS, PAYMENT_METHOD_LABELS } from "@/lib/constants";
 import {
   filterTransactions,
   getAvailableMonths,
@@ -39,6 +39,7 @@ import {
   sumByTypeAndPayment,
   toMonthKey,
   type MonthKey,
+  type PaymentTotals,
 } from "@/lib/finance-utils";
 import { PaymentMethodBadge } from "@/components/money/payment-method-badge";
 import { formatCurrency, formatDate, cn } from "@/lib/utils";
@@ -49,6 +50,16 @@ import {
 } from "@/actions/transactions";
 import { useRefreshAction } from "@/hooks/use-refresh-action";
 import type { Transaction, Goal, PaymentMethod } from "@/lib/types";
+
+const BAR_COLORS: Record<PaymentMethod, string> = {
+  cash: "bg-amber-500",
+  revolut: "bg-violet-500",
+  amex: "bg-blue-500",
+  hsbc: "bg-red-500",
+  monzo: "bg-pink-500",
+  tsb: "bg-sky-500",
+  chase: "bg-teal-500",
+};
 
 const TrendBarChart = dynamic(
   () => import("@/components/money/money-charts").then((m) => m.TrendBarChart),
@@ -268,36 +279,7 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
               Income by payment method
             </p>
-            <div className="flex justify-between text-sm">
-              <span className="text-teal-400">
-                Bank {formatCurrency(monthByPayment.income.bank)}
-              </span>
-              <span className="text-amber-400">
-                Cash {formatCurrency(monthByPayment.income.cash)}
-              </span>
-            </div>
-            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden flex">
-              <div
-                className="h-full bg-teal-500"
-                style={{
-                  width: `${
-                    monthByPayment.income.total
-                      ? (monthByPayment.income.bank / monthByPayment.income.total) * 100
-                      : 50
-                  }%`,
-                }}
-              />
-              <div
-                className="h-full bg-amber-500"
-                style={{
-                  width: `${
-                    monthByPayment.income.total
-                      ? (monthByPayment.income.cash / monthByPayment.income.total) * 100
-                      : 50
-                  }%`,
-                }}
-              />
-            </div>
+            <PaymentMethodBreakdown totals={monthByPayment.income} />
           </CardContent>
         </Card>
         <Card>
@@ -305,36 +287,7 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
               Expenses by payment method
             </p>
-            <div className="flex justify-between text-sm">
-              <span className="text-teal-400">
-                Bank {formatCurrency(monthByPayment.expense.bank)}
-              </span>
-              <span className="text-amber-400">
-                Cash {formatCurrency(monthByPayment.expense.cash)}
-              </span>
-            </div>
-            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden flex">
-              <div
-                className="h-full bg-teal-500"
-                style={{
-                  width: `${
-                    monthByPayment.expense.total
-                      ? (monthByPayment.expense.bank / monthByPayment.expense.total) * 100
-                      : 50
-                  }%`,
-                }}
-              />
-              <div
-                className="h-full bg-amber-500"
-                style={{
-                  width: `${
-                    monthByPayment.expense.total
-                      ? (monthByPayment.expense.cash / monthByPayment.expense.total) * 100
-                      : 50
-                  }%`,
-                }}
-              />
-            </div>
+            <PaymentMethodBreakdown totals={monthByPayment.expense} />
           </CardContent>
         </Card>
       </div>
@@ -484,9 +437,11 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
               }
               className="sm:w-[130px]"
               options={[
-                { value: "all", label: "Bank & cash" },
-                { value: "bank", label: "Bank only" },
-                { value: "cash", label: "Cash only" },
+                { value: "all", label: "All methods" },
+                ...PAYMENT_METHODS.map((m) => ({
+                  value: m,
+                  label: PAYMENT_METHOD_LABELS[m],
+                })),
               ]}
             />
           </div>
@@ -622,8 +577,8 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
             />
             <div>
               <Label>Payment method</Label>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {(["bank", "cash"] as PaymentMethod[]).map((method) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                {PAYMENT_METHODS.map((method) => (
                   <label
                     key={method}
                     className={cn(
@@ -635,7 +590,7 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
                       type="radio"
                       name="payment_method"
                       value={method}
-                      defaultChecked={(editing?.payment_method ?? "bank") === method}
+                      defaultChecked={(editing?.payment_method ?? "hsbc") === method}
                       className="sr-only"
                     />
                     {PAYMENT_METHOD_LABELS[method]}
@@ -664,5 +619,40 @@ export function MoneyPageClient({ transactions, goals }: MoneyPageClientProps) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+function PaymentMethodBreakdown({ totals }: { totals: PaymentTotals }) {
+  const rows = PAYMENT_METHODS
+    .map((method) => ({ method, amount: totals[method] }))
+    .filter((row) => row.amount > 0);
+
+  if (rows.length === 0) {
+    return <p className="text-sm text-muted-foreground">No transactions this month.</p>;
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        {rows.map(({ method, amount }) => (
+          <div key={method} className="flex items-center justify-between gap-3 text-sm">
+            <span className="text-muted-foreground">{PAYMENT_METHOD_LABELS[method]}</span>
+            <span className="numeric font-medium tabular-nums">{formatCurrency(amount)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden flex">
+        {rows.map(({ method, amount }) => (
+          <div
+            key={method}
+            className={cn("h-full", BAR_COLORS[method])}
+            style={{
+              width: `${totals.total ? (amount / totals.total) * 100 : 0}%`,
+            }}
+            title={`${PAYMENT_METHOD_LABELS[method]}: ${formatCurrency(amount)}`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }

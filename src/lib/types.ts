@@ -24,7 +24,14 @@ export type WaitingItemStatus = "waiting" | "chased" | "resolved";
 export type NoteEntityType = "project" | "contact" | "idea" | "goal" | "none";
 
 export type TransactionType = "income" | "expense";
-export type PaymentMethod = "bank" | "cash";
+export type PaymentMethod =
+  | "cash"
+  | "revolut"
+  | "amex"
+  | "hsbc"
+  | "monzo"
+  | "tsb"
+  | "chase";
 
 export type ProjectStatus =
   | "idea"

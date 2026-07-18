@@ -117,7 +117,7 @@ export const quickTaskSchema = taskSchema.pick({ title: true, priority: true, du
 export const quickReminderSchema = reminderSchema.pick({ title: true, type: true, due_date: true });
 
 export const quickTransactionSchema = transactionSchema.pick({ title: true, amount: true, type: true, category: true, date: true }).extend({
-  payment_method: z.enum(PAYMENT_METHODS).default("bank"),
+  payment_method: z.enum(PAYMENT_METHODS).default("hsbc"),
 });
 
 export const quickIdeaSchema = ideaSchema.pick({ title: true, category: true }).extend({

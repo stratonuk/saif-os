@@ -22,12 +22,22 @@ import {
   SUBSCRIPTION_STATUSES,
   SUBSCRIPTION_CATEGORY_LABELS,
   PAYMENT_METHODS,
+  PAYMENT_METHOD_LABELS,
+  MONTH_NAMES,
 } from "@/lib/constants";
-import { monthlySubscriptionCost, annualSubscriptionCost } from "@/lib/subscription-utils";
+import {
+  monthlySubscriptionCost,
+  annualSubscriptionCost,
+  getEffectiveRenewalDate,
+  getSubscriptionRenewalDay,
+  formatSubscriptionRenewal,
+  formatRenewalDay,
+  RENEWAL_DAY_OPTIONS,
+} from "@/lib/subscription-utils";
 import { formatCurrency, formatDate, daysUntil, cn } from "@/lib/utils";
 import { createSubscription, updateSubscription, deleteSubscription } from "@/actions/modules";
 import { useRefreshAction } from "@/hooks/use-refresh-action";
-import type { Subscription } from "@/lib/types";
+import type { Subscription, SubscriptionBillingCycle } from "@/lib/types";
 
 const STATUS_COLORS: Record<string, string> = {
   active: "text-emerald-400 bg-emerald-400/10",
@@ -42,6 +52,7 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
   const [dialogOpen, setDialogOpen] = useState(searchParams.get("new") === "1");
   const [editing, setEditing] = useState<Subscription | null>(null);
   const [autoRenew, setAutoRenew] = useState(true);
+  const [billingCycle, setBillingCycle] = useState<SubscriptionBillingCycle>("monthly");
 
   const filtered = useMemo(
     () => (filter === "active" ? subscriptions.filter((s) => s.status === "active") : subscriptions),
@@ -57,9 +68,13 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
     [subscriptions]
   );
 
-  const upcomingCount = subscriptions.filter(
-    (s) => s.status === "active" && s.renewal_date && daysUntil(s.renewal_date) <= 30 && daysUntil(s.renewal_date) >= 0
-  ).length;
+  const upcomingCount = subscriptions.filter((s) => {
+    if (s.status !== "active") return false;
+    const next = getEffectiveRenewalDate(s);
+    if (!next) return false;
+    const d = daysUntil(next);
+    return d >= 0 && d <= 30;
+  }).length;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -76,20 +91,29 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
   function openCreate() {
     setEditing(null);
     setAutoRenew(true);
+    setBillingCycle("monthly");
     setDialogOpen(true);
   }
 
   function openEdit(sub: Subscription) {
     setEditing(sub);
     setAutoRenew(sub.auto_renew);
+    setBillingCycle(sub.billing_cycle);
     setDialogOpen(true);
   }
+
+  const defaultRenewalDay = editing
+    ? String(getSubscriptionRenewalDay(editing) ?? 1)
+    : "1";
+  const defaultRenewalMonth = editing?.renewal_date
+    ? String(new Date(`${editing.renewal_date}T12:00:00`).getMonth() + 1)
+    : String(new Date().getMonth() + 1);
 
   return (
     <>
       <PageHeader
         title="Subscriptions"
-        description="Track recurring costs, renewal dates, and monthly spend."
+        description="Track recurring costs, renewal days, and monthly spend."
         action={
           <Button onClick={openCreate} className="rounded-xl">
             <Plus className="h-4 w-4 mr-1" /> Add Subscription
@@ -99,15 +123,15 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
 
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
         <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
-          <p className="text-2xl font-bold">{formatCurrency(monthlyTotal)}</p>
+          <p className="numeric text-2xl font-bold">{formatCurrency(monthlyTotal)}</p>
           <p className="text-xs text-muted-foreground">Monthly total</p>
         </div>
         <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3">
-          <p className="text-2xl font-bold">{formatCurrency(annualTotal)}</p>
+          <p className="numeric text-2xl font-bold">{formatCurrency(annualTotal)}</p>
           <p className="text-xs text-muted-foreground">Annual total</p>
         </div>
         <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3">
-          <p className="text-2xl font-bold text-amber-400">{upcomingCount}</p>
+          <p className="numeric text-2xl font-bold text-amber-400">{upcomingCount}</p>
           <p className="text-xs text-muted-foreground">Renewing in 30 days</p>
         </div>
       </div>
@@ -137,12 +161,16 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered
             .sort((a, b) => {
-              if (!a.renewal_date) return 1;
-              if (!b.renewal_date) return -1;
-              return new Date(a.renewal_date).getTime() - new Date(b.renewal_date).getTime();
+              const da = getEffectiveRenewalDate(a);
+              const db = getEffectiveRenewalDate(b);
+              if (!da) return 1;
+              if (!db) return -1;
+              return new Date(da).getTime() - new Date(db).getTime();
             })
             .map((sub) => {
-              const days = sub.renewal_date ? daysUntil(sub.renewal_date) : null;
+              const next = getEffectiveRenewalDate(sub);
+              const days = next ? daysUntil(next) : null;
+              const renewalDay = getSubscriptionRenewalDay(sub);
               return (
                 <Card
                   key={sub.id}
@@ -166,9 +194,14 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
                           <Badge className={cn("border-0 capitalize", STATUS_COLORS[sub.status])}>
                             {sub.status}
                           </Badge>
+                          {renewalDay != null && sub.billing_cycle !== "weekly" && (
+                            <Badge variant="outline" className="border-0 bg-primary/10 text-primary">
+                              {formatRenewalDay(renewalDay)} each {sub.billing_cycle === "yearly" ? "year" : "month"}
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                      {sub.renewal_date && days !== null && (
+                      {next && days !== null && (
                         <div className={cn(
                           "flex flex-col items-center rounded-xl px-3 py-2 min-w-[64px] border",
                           days < 0 ? "border-red-500/30 bg-red-500/5 text-red-400" :
@@ -191,10 +224,13 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
                         {formatCurrency(sub.cost)}
                         <span className="text-muted-foreground font-normal">/{sub.billing_cycle}</span>
                       </span>
-                      {sub.renewal_date && (
-                        <span className="text-muted-foreground">Renews {formatDate(sub.renewal_date)}</span>
-                      )}
+                      <span className="text-muted-foreground">{formatSubscriptionRenewal(sub)}</span>
                     </div>
+                    {next && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Next: {formatDate(next)}
+                      </p>
+                    )}
 
                     {sub.auto_renew && (
                       <p className="text-xs text-primary mt-1">Auto-renew enabled</p>
@@ -226,7 +262,7 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Subscription" : "New Subscription"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form key={editing?.id ?? "new"} onSubmit={handleSubmit} className="space-y-4">
             <div><Label>Name</Label><Input name="name" defaultValue={editing?.name} required className="mt-1" /></div>
             <div><Label>Provider</Label><Input name="provider" defaultValue={editing?.provider ?? ""} className="mt-1" /></div>
             <div className="grid grid-cols-2 gap-3">
@@ -234,11 +270,48 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
               <FormSelect
                 label="Billing cycle"
                 name="billing_cycle"
-                defaultValue={editing?.billing_cycle ?? "monthly"}
+                value={billingCycle}
+                onChange={(e) => setBillingCycle(e.target.value as SubscriptionBillingCycle)}
                 options={SUBSCRIPTION_BILLING_CYCLES.map((c) => ({ value: c, label: c }))}
               />
             </div>
-            <div><Label>Renewal date</Label><Input name="renewal_date" type="date" defaultValue={editing?.renewal_date ?? ""} className="mt-1" /></div>
+
+            {billingCycle === "weekly" ? (
+              <div>
+                <Label>Next renewal date</Label>
+                <Input
+                  name="renewal_date"
+                  type="date"
+                  defaultValue={editing ? getEffectiveRenewalDate(editing) ?? "" : ""}
+                  className="mt-1"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <FormSelect
+                  label="Renews on day"
+                  name="renewal_day"
+                  defaultValue={defaultRenewalDay}
+                  options={RENEWAL_DAY_OPTIONS}
+                />
+                {billingCycle === "yearly" ? (
+                  <FormSelect
+                    label="of month"
+                    name="renewal_month"
+                    defaultValue={defaultRenewalMonth}
+                    options={MONTH_NAMES.map((name, i) => ({
+                      value: String(i + 1),
+                      label: name,
+                    }))}
+                  />
+                ) : (
+                  <div className="flex items-end pb-2">
+                    <p className="text-sm text-muted-foreground">of each month</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <FormSelect
               label="Category"
               name="category"
@@ -248,8 +321,11 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
             <FormSelect
               label="Payment method"
               name="payment_method"
-              defaultValue={editing?.payment_method ?? "bank"}
-              options={PAYMENT_METHODS.map((m) => ({ value: m, label: m }))}
+              defaultValue={editing?.payment_method ?? "hsbc"}
+              options={PAYMENT_METHODS.map((m) => ({
+                value: m,
+                label: PAYMENT_METHOD_LABELS[m] ?? m,
+              }))}
             />
             <FormSelect
               label="Status"

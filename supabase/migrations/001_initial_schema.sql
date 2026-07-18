@@ -85,7 +85,7 @@ create table public.transactions (
   amount numeric not null,
   type text not null check (type in ('income', 'expense')),
   category text not null,
-  payment_method text not null default 'bank' check (payment_method in ('bank', 'cash')),
+  payment_method text not null default 'hsbc' check (payment_method in ('cash', 'revolut', 'amex', 'hsbc', 'monzo', 'tsb', 'chase')),
   date date not null default current_date,
   notes text,
   created_at timestamptz not null default now()

@@ -11,9 +11,12 @@ export interface Subscription {
   provider?: string | null;
   cost: number;
   billing_cycle: SubscriptionBillingCycle;
+  /** Day of month the subscription renews (1–31). */
+  renewal_day?: number | null;
+  /** Next (or last-known) renewal date — kept in sync from renewal_day. */
   renewal_date?: string | null;
   category: SubscriptionCategory;
-  payment_method: "bank" | "cash";
+  payment_method: import("./types").PaymentMethod;
   auto_renew: boolean;
   status: SubscriptionStatus;
   reminder_days_before: number;

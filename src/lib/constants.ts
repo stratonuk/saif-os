@@ -112,8 +112,39 @@ export const PROJECT_STATUSES = ["idea", "planning", "building", "launched", "pa
 export const IDEA_CATEGORIES = ["business", "app", "content", "investment", "personal"] as const;
 export const IDEA_STATUSES = ["raw", "reviewing", "planned", "archived"] as const;
 export const GOAL_TYPES = ["financial", "personal", "business"] as const;
-export const PAYMENT_METHODS = ["bank", "cash"] as const;
-export const PAYMENT_METHOD_LABELS: Record<string, string> = { bank: "Bank", cash: "Cash" };
+export const PAYMENT_METHODS = [
+  "cash",
+  "revolut",
+  "amex",
+  "hsbc",
+  "monzo",
+  "tsb",
+  "chase",
+] as const;
+
+export const DEFAULT_PAYMENT_METHOD = "hsbc" as const;
+
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  cash: "Cash",
+  revolut: "Revolut",
+  amex: "Amex",
+  hsbc: "HSBC",
+  monzo: "Monzo",
+  tsb: "TSB",
+  chase: "Chase",
+  // legacy
+  bank: "HSBC",
+};
+
+export const PAYMENT_METHOD_COLORS: Record<string, string> = {
+  cash: "bg-amber-400/10 text-amber-400",
+  revolut: "bg-violet-400/10 text-violet-400",
+  amex: "bg-blue-400/10 text-blue-400",
+  hsbc: "bg-red-400/10 text-red-400",
+  monzo: "bg-pink-400/10 text-pink-400",
+  tsb: "bg-sky-400/10 text-sky-400",
+  chase: "bg-teal-400/10 text-teal-400",
+};
 
 export const TRANSACTION_CATEGORIES = [
   "Consulting", "Product", "Investments", "Housing", "Food", "Software",

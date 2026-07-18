@@ -24,7 +24,7 @@ export async function quickCaptureReminder(formData: FormData) {
 }
 
 export async function quickCaptureTransaction(formData: FormData) {
-  if (!formData.get("payment_method")) formData.set("payment_method", "bank");
+  if (!formData.get("payment_method")) formData.set("payment_method", "hsbc");
   if (!formData.get("type")) formData.set("type", "expense");
   if (!formData.get("category")) formData.set("category", "Other");
   if (!formData.get("date")) formData.set("date", new Date().toISOString().split("T")[0]);

@@ -5,6 +5,7 @@ import type {
 import { daysUntil } from "./utils";
 import { isTaskOverdue } from "./task-utils";
 import { isWaitingOverdue } from "./waiting-utils";
+import { getEffectiveRenewalDate } from "./subscription-utils";
 
 function urgencyFromDays(days: number): InboxItem["urgency"] {
   if (days < 0) return "overdue";
@@ -53,13 +54,15 @@ export function buildInboxItems(input: {
     });
   }
 
-  for (const s of input.subscriptions.filter((s) => s.status === "active" && s.renewal_date)) {
-    const days = daysUntil(s.renewal_date!);
+  for (const s of input.subscriptions.filter((s) => s.status === "active")) {
+    const due = getEffectiveRenewalDate(s);
+    if (!due) continue;
+    const days = daysUntil(due);
     if (days <= s.reminder_days_before) {
       items.push({
         id: `sub-${s.id}`, type: "subscription", title: `${s.name} renews`,
         subtitle: `£${s.cost}/${s.billing_cycle}`, urgency: urgencyFromDays(days),
-        href: "/subscriptions", due_date: s.renewal_date!,
+        href: "/subscriptions", due_date: due,
       });
     }
   }

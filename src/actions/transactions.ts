@@ -18,7 +18,7 @@ function parseTransactionForm(formData: FormData) {
     amount: formData.get("amount"),
     type: formData.get("type"),
     category: formData.get("category"),
-    payment_method: formData.get("payment_method") ?? "bank",
+    payment_method: formData.get("payment_method") ?? "hsbc",
     date: formData.get("date"),
     notes: formData.get("notes") || undefined,
   });
