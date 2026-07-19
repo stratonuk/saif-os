@@ -36,14 +36,21 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "pointer-events-auto relative grid w-full max-w-lg max-h-full min-h-0 gap-4 overflow-y-auto overscroll-contain touch-pan-y glass-strong p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-2xl",
+          "pointer-events-auto relative grid w-full max-w-lg max-h-full min-h-0 gap-4 overflow-y-auto overscroll-contain touch-pan-y rounded-2xl glass-strong p-6 pt-7 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           className
         )}
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute right-4 top-4 z-10 rounded-lg opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring">
-          <X className="h-4 w-4" />
+        <DialogPrimitive.Close
+          className={cn(
+            "absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full",
+            "border border-border/80 bg-muted text-foreground shadow-sm",
+            "opacity-100 transition-colors hover:bg-accent active:scale-95",
+            "focus:outline-none focus:ring-2 focus:ring-ring"
+          )}
+        >
+          <X className="h-4 w-4" strokeWidth={2.5} />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
@@ -68,7 +75,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    className={cn("text-lg font-semibold leading-none tracking-tight pr-10", className)}
     {...props}
   />
 ));
