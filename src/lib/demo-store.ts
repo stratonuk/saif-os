@@ -10,6 +10,9 @@ import {
   demoProfile,
   demoProjects,
   demoReminders,
+  demoScheduleBlocks,
+  demoScheduleEntries,
+  demoScheduleHolidays,
   demoTasks,
   demoTransactions,
   demoWaitingItems,
@@ -41,6 +44,9 @@ import type {
   Profile,
   Project,
   Reminder,
+  ScheduleBlock,
+  ScheduleEntry,
+  ScheduleHoliday,
   StratonActivity,
   StratonClient,
   StratonClientReminder,
@@ -63,6 +69,9 @@ export interface DemoStore {
   profile: Profile;
   tasks: Task[];
   reminders: Reminder[];
+  schedule_blocks: ScheduleBlock[];
+  schedule_entries: ScheduleEntry[];
+  schedule_holidays: ScheduleHoliday[];
   transactions: Transaction[];
   projects: Project[];
   ideas: Idea[];
@@ -95,6 +104,9 @@ const SEED: DemoStore = {
   profile: demoProfile,
   tasks: demoTasks,
   reminders: demoReminders,
+  schedule_blocks: demoScheduleBlocks,
+  schedule_entries: demoScheduleEntries,
+  schedule_holidays: demoScheduleHolidays,
   transactions: demoTransactions,
   projects: demoProjects,
   ideas: demoIdeas,
@@ -125,6 +137,7 @@ const ARRAY_DEFAULTS: (keyof DemoStore)[] = [
   "vehicle_expenses", "parking_tickets", "documents", "monthly_reviews", "straton_clients",
   "straton_projects", "straton_invoices", "straton_hosting",
   "straton_client_reminders", "straton_activity",
+  "schedule_blocks", "schedule_entries", "schedule_holidays",
 ];
 
 function normalizeStore(store: DemoStore): DemoStore {

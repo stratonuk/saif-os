@@ -82,6 +82,7 @@ export const PERSONAL_GROUPS: NavGroup[] = [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, matchPrefix: false },
       { href: "/inbox", label: "Inbox", icon: Inbox },
       { href: "/calendar", label: "Calendar", icon: Calendar },
+      { href: "/schedule", label: "Schedule", icon: CalendarCheck },
     ],
   },
   {
@@ -175,6 +176,7 @@ export const MOBILE_MORE_GROUPS: NavGroup[] = [
       { href: "/ideas", label: "Idea Vault", icon: Lightbulb },
       { href: "/notes", label: "Notes", icon: StickyNote },
       { href: "/calendar", label: "Calendar", icon: Calendar },
+      { href: "/schedule", label: "Schedule", icon: CalendarCheck },
     ],
   },
   {

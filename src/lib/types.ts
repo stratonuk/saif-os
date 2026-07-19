@@ -224,4 +224,10 @@ export type {
   StratonHostingStatus,
   StratonReminderType,
   InboxItem,
+  ScheduleBlock,
+  ScheduleEntry,
+  ScheduleHoliday,
+  ScheduleDayOfWeek,
+  ScheduleKind,
+  ScheduleRecurringInterval,
 } from "./module-types";

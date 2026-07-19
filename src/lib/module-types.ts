@@ -255,3 +255,56 @@ export interface InboxItem {
   href: string;
   due_date?: string;
 }
+
+// ─── Weekly schedule ─────────────────────────────────────────
+/** 1 = Monday … 7 = Sunday (ISO / date-fns weekStartsOn: 1). */
+export type ScheduleDayOfWeek = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type ScheduleKind = "job" | "task" | "personal" | "other";
+export type ScheduleRecurringInterval = "daily" | "weekly" | "monthly" | "yearly";
+
+/** Recurring weekly template — e.g. job hours that appear every Mon–Fri. */
+export interface ScheduleBlock {
+  id: string;
+  user_id: string;
+  title: string;
+  notes?: string | null;
+  day_of_week: ScheduleDayOfWeek;
+  start_time: string;
+  end_time: string;
+  kind: ScheduleKind;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Schedule item on a date. When `recurring` is true, `date` is the start/anchor
+ * and occurrences are expanded by `recurring_interval`.
+ */
+export interface ScheduleEntry {
+  id: string;
+  user_id: string;
+  title: string;
+  notes?: string | null;
+  date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  kind: ScheduleKind;
+  done: boolean;
+  recurring: boolean;
+  recurring_interval?: ScheduleRecurringInterval | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Time off range — suppresses job hours and shows as a full-day holiday. */
+export interface ScheduleHoliday {
+  id: string;
+  user_id: string;
+  title: string;
+  start_date: string;
+  end_date: string;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}

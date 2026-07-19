@@ -1,6 +1,7 @@
 import "server-only";
 
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
+import { toDateKey } from "@/lib/utils";
 
 let sql: NeonQueryFunction<false, false> | null = null;
 
@@ -23,6 +24,9 @@ export const USER_TABLES = [
   "projects",
   "tasks",
   "reminders",
+  "schedule_blocks",
+  "schedule_entries",
+  "schedule_holidays",
   "transactions",
   "ideas",
   "goals",
@@ -52,6 +56,35 @@ function assertUserTable(table: string): asserts table is UserTable {
   }
 }
 
+function isDateOnlyKey(key: string) {
+  return (
+    key === "date" ||
+    key.endsWith("_date") ||
+    key.endsWith("_expiry") ||
+    key === "last_contacted" ||
+    key === "next_follow_up"
+  );
+}
+
+/** Neon returns JS Date for Postgres date columns — normalize to yyyy-MM-dd strings. */
+function normalizeRow<T extends Record<string, unknown>>(row: T): T {
+  const next = { ...row };
+  for (const key of Object.keys(next)) {
+    const value = next[key];
+    if (!(value instanceof Date)) continue;
+    if (isDateOnlyKey(key)) {
+      (next as Record<string, unknown>)[key] = toDateKey(value);
+    } else if (key.endsWith("_at") || key === "expires_at") {
+      (next as Record<string, unknown>)[key] = value.toISOString();
+    }
+  }
+  return next;
+}
+
+function normalizeRows<T>(rows: T[]): T[] {
+  return rows.map((row) => normalizeRow(row as Record<string, unknown>) as T);
+}
+
 /** SELECT * FROM table WHERE user_id = $1 ORDER BY col ASC/DESC */
 export async function selectForUser<T>(
   table: UserTable,
@@ -61,15 +94,17 @@ export async function selectForUser<T>(
   assertUserTable(table);
   const db = getSql();
   if (!orderBy) {
-    return (await db.query(`SELECT * FROM ${table} WHERE user_id = $1`, [userId])) as T[];
+    const rows = (await db.query(`SELECT * FROM ${table} WHERE user_id = $1`, [userId])) as T[];
+    return normalizeRows(rows);
   }
   const dir = orderBy.asc === false ? "DESC" : "ASC";
   // column names are controlled by our code, not user input
   const col = orderBy.col.replace(/[^a-z0-9_]/gi, "");
-  return (await db.query(
+  const rows = (await db.query(
     `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY ${col} ${dir} NULLS LAST`,
     [userId]
   )) as T[];
+  return normalizeRows(rows);
 }
 
 export async function selectByIdForUser<T>(
@@ -83,7 +118,8 @@ export async function selectByIdForUser<T>(
     `SELECT * FROM ${table} WHERE id = $1 AND user_id = $2 LIMIT 1`,
     [id, userId]
   )) as T[];
-  return rows[0] ?? null;
+  const row = rows[0];
+  return row ? (normalizeRow(row as Record<string, unknown>) as T) : null;
 }
 
 export async function insertRow<T extends Record<string, unknown>>(

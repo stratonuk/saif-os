@@ -7,6 +7,8 @@ import {
   PAYMENT_METHODS,
   PROJECT_STATUSES,
   REMINDER_TYPES,
+  SCHEDULE_KINDS,
+  SCHEDULE_RECURRING_INTERVALS,
   TASK_CATEGORIES,
   TASK_PRIORITIES,
   TASK_STATUSES,
@@ -110,6 +112,66 @@ export const noteSchema = z.object({
   linked_entity_id: z.string().optional().nullable(),
 });
 
+const timeString = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM format");
+
+export const scheduleBlockSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  notes: z.string().optional(),
+  day_of_week: z.coerce.number().int().min(1).max(7),
+  start_time: timeString,
+  end_time: timeString,
+  kind: z.enum(SCHEDULE_KINDS),
+  active: z.boolean().default(true),
+});
+
+export const scheduleEntrySchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  notes: z.string().optional(),
+  date: z.string().min(1, "Date is required"),
+  start_time: z.string().optional().nullable(),
+  end_time: z.string().optional().nullable(),
+  kind: z.enum(SCHEDULE_KINDS),
+  done: z.boolean().default(false),
+  recurring: z.boolean().default(false),
+  recurring_interval: z.enum(SCHEDULE_RECURRING_INTERVALS).optional().nullable(),
+}).superRefine((data, ctx) => {
+  if (data.recurring && !data.recurring_interval) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Pick how often this repeats",
+      path: ["recurring_interval"],
+    });
+  }
+});
+
+export const jobHoursSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  start_time: timeString,
+  end_time: timeString,
+  /** Comma-separated ISO weekdays 1–7, e.g. "1,2,3,4,5" */
+  days: z.string().min(1, "Pick at least one day"),
+  enabled: z.boolean().default(true),
+});
+
+export const scheduleHolidaySchema = z
+  .object({
+    title: z.string().min(1, "Title is required"),
+    start_date: z.string().min(1, "Start date is required"),
+    end_date: z.string().min(1, "End date is required"),
+    notes: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.end_date < data.start_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End date must be on or after start date",
+        path: ["end_date"],
+      });
+    }
+  });
+
 export const quickTaskSchema = taskSchema.pick({ title: true, priority: true, due_date: true, category: true }).extend({
   status: z.enum(TASK_STATUSES).default("todo"),
 });
@@ -143,3 +205,7 @@ export type GoalFormValues = z.infer<typeof goalSchema>;
 export type ContactFormValues = z.infer<typeof contactSchema>;
 export type WaitingItemFormValues = z.infer<typeof waitingItemSchema>;
 export type NoteFormValues = z.infer<typeof noteSchema>;
+export type ScheduleBlockFormValues = z.infer<typeof scheduleBlockSchema>;
+export type ScheduleEntryFormValues = z.infer<typeof scheduleEntrySchema>;
+export type JobHoursFormValues = z.infer<typeof jobHoursSchema>;
+export type ScheduleHolidayFormValues = z.infer<typeof scheduleHolidaySchema>;

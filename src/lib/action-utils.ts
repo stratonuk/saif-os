@@ -28,7 +28,7 @@ export async function revalidateApp(...paths: string[]) {
     ...paths,
     "/dashboard", "/inbox", "/tasks", "/reminders", "/waiting-on",
     "/money", "/projects", "/ideas", "/goals", "/contacts", "/notes",
-    "/documents", "/car", "/subscriptions", "/monthly-reset",
+    "/documents", "/car", "/subscriptions", "/monthly-reset", "/schedule", "/calendar",
     "/straton", "/straton/clients", "/straton/projects", "/straton/invoices",
     "/straton/hosting", "/straton/documents", "/straton/reminders", "/settings",
   ]);

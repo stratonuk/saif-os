@@ -13,6 +13,9 @@ import type {
   Profile,
   Project,
   Reminder,
+  ScheduleBlock,
+  ScheduleEntry,
+  ScheduleHoliday,
   Task,
   Transaction,
   WaitingItem,
@@ -52,6 +55,53 @@ export async function getReminders(): Promise<Reminder[]> {
   const userId = await getAuthUserId();
   if (!userId) return [];
   return selectForUser<Reminder>("reminders", userId, { col: "due_date", asc: true });
+}
+
+export async function getScheduleBlocks(): Promise<ScheduleBlock[]> {
+  if (isDemoMode()) {
+    const store = await readDemoStore();
+    return store.schedule_blocks;
+  }
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<ScheduleBlock>("schedule_blocks", userId, {
+    col: "day_of_week",
+    asc: true,
+  });
+}
+
+export async function getScheduleEntries(): Promise<ScheduleEntry[]> {
+  const normalize = (rows: ScheduleEntry[]) =>
+    rows.map((e) => ({
+      ...e,
+      recurring: Boolean(e.recurring),
+      recurring_interval: e.recurring ? (e.recurring_interval ?? null) : null,
+    }));
+
+  if (isDemoMode()) {
+    const store = await readDemoStore();
+    return normalize(store.schedule_entries);
+  }
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  const rows = await selectForUser<ScheduleEntry>("schedule_entries", userId, {
+    col: "date",
+    asc: true,
+  });
+  return normalize(rows);
+}
+
+export async function getScheduleHolidays(): Promise<ScheduleHoliday[]> {
+  if (isDemoMode()) {
+    const store = await readDemoStore();
+    return store.schedule_holidays ?? [];
+  }
+  const userId = await getAuthUserId();
+  if (!userId) return [];
+  return selectForUser<ScheduleHoliday>("schedule_holidays", userId, {
+    col: "start_date",
+    asc: true,
+  });
 }
 
 export async function getTransactions(): Promise<Transaction[]> {

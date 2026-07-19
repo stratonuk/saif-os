@@ -11,6 +11,7 @@ const PROTECTED_PREFIXES = [
   "/dashboard",
   "/inbox",
   "/calendar",
+  "/schedule",
   "/tasks",
   "/reminders",
   "/waiting-on",

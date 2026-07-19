@@ -237,3 +237,37 @@ export const DOCUMENT_ENTITY_TYPES = [
 ] as const;
 
 export const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+// ─── Weekly schedule ─────────────────────────────────────────
+export const SCHEDULE_KINDS = ["job", "task", "personal", "other"] as const;
+export const SCHEDULE_KIND_LABELS: Record<string, string> = {
+  job: "Job",
+  task: "Task",
+  personal: "Personal",
+  other: "Other",
+};
+export const SCHEDULE_KIND_COLORS: Record<string, string> = {
+  job: "border-sky-500/30 bg-sky-500/10 text-sky-300",
+  task: "border-teal-500/30 bg-teal-500/10 text-teal-300",
+  personal: "border-amber-500/30 bg-amber-500/10 text-amber-300",
+  other: "border-border/60 bg-muted/40 text-muted-foreground",
+};
+export const SCHEDULE_WEEKDAYS = [
+  { value: 1, label: "Monday", short: "Mon" },
+  { value: 2, label: "Tuesday", short: "Tue" },
+  { value: 3, label: "Wednesday", short: "Wed" },
+  { value: 4, label: "Thursday", short: "Thu" },
+  { value: 5, label: "Friday", short: "Fri" },
+  { value: 6, label: "Saturday", short: "Sat" },
+  { value: 7, label: "Sunday", short: "Sun" },
+] as const;
+
+export const SCHEDULE_RECURRING_INTERVALS = ["daily", "weekly", "monthly", "yearly"] as const;
+export const SCHEDULE_RECURRING_LABELS: Record<string, string> = {
+  daily: "Every day",
+  weekly: "Every week",
+  monthly: "Every month",
+  yearly: "Every year",
+};
+
+export const HOLIDAY_ITEM_COLOR = "border-emerald-500/30 bg-emerald-500/10 text-emerald-300";

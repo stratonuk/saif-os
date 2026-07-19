@@ -22,11 +22,34 @@ export function formatPrivateCurrency(amount: number, show: boolean, currency = 
 }
 
 export function formatDate(date: string | Date) {
+  const key = toDateKey(date);
+  if (!key) return "—";
+  const [y, m, d] = key.split("-").map(Number);
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(new Date(date));
+  }).format(new Date(y, m - 1, d));
+}
+
+/**
+ * Normalize DB/demo date values to `yyyy-MM-dd`.
+ * Neon returns JS Date for Postgres `date` columns (often UTC midnight or prior-day 23:00).
+ */
+export function toDateKey(value: string | Date | null | undefined): string | null {
+  if (value == null || value === "") return null;
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null;
+    const y = value.getFullYear();
+    const m = String(value.getMonth() + 1).padStart(2, "0");
+    const d = String(value.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+  const s = String(value).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const parsed = new Date(s);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return toDateKey(parsed);
 }
 
 export function daysUntil(date: string | Date) {
