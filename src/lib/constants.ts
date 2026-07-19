@@ -111,7 +111,29 @@ export const NOTE_ENTITY_LABELS: Record<string, string> = { none: "No link", pro
 export const PROJECT_STATUSES = ["idea", "planning", "building", "launched", "paused"] as const;
 export const IDEA_CATEGORIES = ["business", "app", "content", "investment", "personal"] as const;
 export const IDEA_STATUSES = ["raw", "reviewing", "planned", "archived"] as const;
-export const GOAL_TYPES = ["financial", "personal", "business"] as const;
+export const GOAL_TYPES = [
+  "personal",
+  "health",
+  "fitness",
+  "learning",
+  "career",
+  "business",
+  "financial",
+  "habit",
+  "other",
+] as const;
+
+export const GOAL_TYPE_LABELS: Record<string, string> = {
+  personal: "Personal",
+  health: "Health",
+  fitness: "Fitness",
+  learning: "Learning",
+  career: "Career",
+  business: "Business",
+  financial: "Financial",
+  habit: "Habit",
+  other: "Other",
+};
 export const PAYMENT_METHODS = [
   "cash",
   "revolut",

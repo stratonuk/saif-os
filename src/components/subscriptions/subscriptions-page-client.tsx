@@ -258,7 +258,7 @@ export function SubscriptionsPageClient({ subscriptions }: { subscriptions: Subs
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Subscription" : "New Subscription"}</DialogTitle>
           </DialogHeader>

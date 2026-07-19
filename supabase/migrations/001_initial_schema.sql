@@ -115,7 +115,10 @@ create table public.goals (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users on delete cascade not null,
   title text not null,
-  type text not null check (type in ('financial', 'personal', 'business')),
+  type text not null check (type in (
+    'personal', 'health', 'fitness', 'learning', 'career',
+    'business', 'financial', 'habit', 'other'
+  )),
   current_value numeric not null default 0,
   target_value numeric not null,
   target_date date,

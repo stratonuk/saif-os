@@ -49,7 +49,16 @@ export type IdeaCategory =
 
 export type IdeaStatus = "raw" | "reviewing" | "planned" | "archived";
 
-export type GoalType = "financial" | "personal" | "business";
+export type GoalType =
+  | "personal"
+  | "health"
+  | "fitness"
+  | "learning"
+  | "career"
+  | "business"
+  | "financial"
+  | "habit"
+  | "other";
 
 export interface Profile {
   id: string;

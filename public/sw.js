@@ -1,7 +1,8 @@
-/* JARVIS PWA — cache static assets for faster cold opens.
-   HTML/RSC always go network-first so data stays fresh. */
+/* JARVIS PWA — cache icons/manifest only.
+   Never cache /_next/* — stale webpack chunks cause:
+   "Cannot read properties of undefined (reading 'call')" */
 
-const CACHE = "jarvis-static-v1";
+const CACHE = "jarvis-static-v2";
 const PRECACHE = [
   "/manifest.webmanifest",
   "/brand/icon-192.png",
@@ -11,15 +12,21 @@ const PRECACHE = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting())
+    caches
+      .open(CACHE)
+      .then((cache) => cache.addAll(PRECACHE))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      )
+      .then(() => self.clients.claim())
   );
 });
 
@@ -30,38 +37,33 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Next static chunks / fonts / icons — cache-first
-  const isStatic =
-    url.pathname.startsWith("/_next/static/") ||
+  // Never intercept Next.js runtime / chunks / RSC — always network.
+  if (
+    url.pathname.startsWith("/_next/") ||
+    request.mode === "navigate" ||
+    request.headers.get("RSC") === "1" ||
+    request.headers.get("Next-Router-State-Tree") != null
+  ) {
+    return;
+  }
+
+  // Icons / brand assets — cache-first
+  const isAsset =
     url.pathname.startsWith("/brand/") ||
     url.pathname.endsWith(".png") ||
     url.pathname.endsWith(".ico") ||
     url.pathname.endsWith(".webp") ||
-    url.pathname.endsWith(".woff2");
+    url.pathname.endsWith(".webmanifest");
 
-  if (isStatic) {
-    event.respondWith(
-      caches.open(CACHE).then(async (cache) => {
-        const hit = await cache.match(request);
-        if (hit) return hit;
-        const res = await fetch(request);
-        if (res.ok) cache.put(request, res.clone());
-        return res;
-      })
-    );
-    return;
-  }
+  if (!isAsset) return;
 
-  // Navigations / RSC — network-first, fall back to cache if offline
-  if (request.mode === "navigate" || request.headers.get("RSC") === "1") {
-    event.respondWith(
-      fetch(request)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
-          return res;
-        })
-        .catch(() => caches.match(request).then((r) => r || caches.match("/dashboard")))
-    );
-  }
+  event.respondWith(
+    caches.open(CACHE).then(async (cache) => {
+      const hit = await cache.match(request);
+      if (hit) return hit;
+      const res = await fetch(request);
+      if (res.ok) cache.put(request, res.clone());
+      return res;
+    })
+  );
 });

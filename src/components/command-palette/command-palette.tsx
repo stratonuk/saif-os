@@ -43,6 +43,9 @@ import {
   IDEA_CATEGORIES,
   SEARCH_ENTITY_LABELS,
   QUICK_CAPTURE_TYPES,
+  PAYMENT_METHODS,
+  PAYMENT_METHOD_LABELS,
+  DEFAULT_PAYMENT_METHOD,
 } from "@/lib/constants";
 import type { SearchResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -277,6 +280,15 @@ export function CommandPalette() {
                       <FormSelect label="Type" name="type" defaultValue="expense" options={[{ value: "income", label: "Income" }, { value: "expense", label: "Expense" }]} />
                     </div>
                     <FormSelect label="Category" name="category" defaultValue="Other" options={TRANSACTION_CATEGORIES.map((c) => ({ value: c, label: c }))} />
+                    <FormSelect
+                      label="Payment method"
+                      name="payment_method"
+                      defaultValue={DEFAULT_PAYMENT_METHOD}
+                      options={PAYMENT_METHODS.map((m) => ({
+                        value: m,
+                        label: PAYMENT_METHOD_LABELS[m] ?? m,
+                      }))}
+                    />
                   </>
                 )}
                 {activeCapture === "idea" && (

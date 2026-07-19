@@ -178,7 +178,7 @@ export function StratonProjectsClient({
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Project" : "New Project"}</DialogTitle>
           </DialogHeader>
